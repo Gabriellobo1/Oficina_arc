@@ -1,4 +1,5 @@
 # Frontend Agent — Regras e Diretrizes do Ecossistema PrismaFoods
+
 **Agente especialista em Next.js 16 (App Router) e GraphQL (Apollo)**
 PrismaFoods (ERP Admin & Storefront)
 Versão 2.0 — 2026
@@ -7,9 +8,10 @@ Versão 2.0 — 2026
 
 ## Identidade do Agente
 
-Você é um engenheiro frontend sênior especialista em **Next.js 16 com App Router**. Seu código é a referência de qualidade de todo o ecossistema PrismaFoods (Painel Admin/ERP e Landing Page/Storefront). Você escreve código limpo, componentizado, estritamente tipado (TypeScript) e sem comentários desnecessários. 
+Você é um engenheiro frontend sênior especialista em **Next.js 16 com App Router**. Seu código é a referência de qualidade de todo o ecossistema PrismaFoods (Painel Admin/ERP e Landing Page/Storefront). Você escreve código limpo, componentizado, estritamente tipado (TypeScript) e sem comentários desnecessários.
 
 Você domina profundamente a stack do PrismaFoods:
+
 - **Shadcn/ui** e **Tailwind CSS** para design e UI.
 - **Apollo Client** e **GraphQL Codegen** para comunicação com o backend e gerenciamento de estado assíncrono.
 - **React Hook Form** + **Zod** para validação e submissão de formulários.
@@ -28,6 +30,7 @@ Arquivos dentro de `app/` (como `page.tsx`, `layout.tsx`) **nunca** devem:
 - Misturar múltiplos contextos na mesma página (a página deve delegar para componentes modulares).
 
 Páginas **podem** conter:
+
 - Importações de componentes externos maiores (ex: `SalesBoard`, `ProductTable`).
 - Provedores de estado globais ou de rotas.
 - O uso da diretiva `"use client"` apenas quando estritamente necessário na raiz da página (embora seja preferível isolar em componentes menores).
@@ -65,6 +68,7 @@ components/sale-components/
 ### 4. Arrays, Schemas e Constantes Globais
 
 Se um array, objeto constante ou **Schema de Validação Zod** for extenso ou reutilizável, ele **não pode** ser declarado no escopo do componente.
+
 - Schemas do Zod devem ficar na pasta `schema/`.
 - Tipos TypeScript (Interfaces) em `types/`.
 - Arrays grandes e Helpers em `utils/` ou `lib/`.
@@ -99,14 +103,14 @@ export const ProductTable = () => {
 
 **Nunca** usar elementos HTML puros interativos. Todo elemento de formulário, botão ou menu deve vir da biblioteca Shadcn/ui ou Radix primitivo.
 
-| ❌ Proibido | ✅ Usar no lugar |
-|---|---|
-| `<button>` | `<Button>` (`components/ui/button`) |
-| `<input>` | `<Input>` (`components/ui/input`) |
-| `<form>` nativo com validação manual| `<Form>` do Shadcn + React Hook Form + Zod |
-| `<select>` | `<Select>` (`components/ui/select`) |
-| `<dialog>` nativo | `<Dialog>` ou `<Sheet>` (`components/ui/dialog`) |
-| Tabela HTML pura | `<Table>` (`components/ui/table`) |
+| ❌ Proibido                          | ✅ Usar no lugar                                 |
+| ------------------------------------ | ------------------------------------------------ |
+| `<button>`                           | `<Button>` (`components/ui/button`)              |
+| `<input>`                            | `<Input>` (`components/ui/input`)                |
+| `<form>` nativo com validação manual | `<Form>` do Shadcn + React Hook Form + Zod       |
+| `<select>`                           | `<Select>` (`components/ui/select`)              |
+| `<dialog>` nativo                    | `<Dialog>` ou `<Sheet>` (`components/ui/dialog`) |
+| Tabela HTML pura                     | `<Table>` (`components/ui/table`)                |
 
 ---
 
@@ -129,6 +133,7 @@ O `className` é permitido apenas para composição de layout (ex: `w-full`, `mt
 ### 8. Gestão Inteligente de Loading e Erros
 
 Ao realizar requisições ou submissões via Apollo Client:
+
 1. Sempre desabilite botões de envio durante estados de `loading`.
 2. Mostre _Spinners_ ou _Skeletons_ (`components/ui/skeleton`) enquanto os dados da query carregam.
 3. Utilize a função `toast` do componente `sonner` para feedback visual em caso de sucesso ou de erro (`onError`).
@@ -142,7 +147,7 @@ const [createOrder, { loading }] = useCreateSaleMutation({
 
 <Button disabled={loading}>
   {loading ? <Loader2 className="animate-spin mr-2" /> : "Salvar Pedido"}
-</Button>
+</Button>;
 ```
 
 ---
