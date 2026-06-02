@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Trash2, UserCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -41,7 +41,7 @@ interface ServicesTabProps {
 
 export function ServicesTab({ order }: ServicesTabProps) {
   const form = useForm<ServiceItemFormValues>({
-    resolver: zodResolver(serviceItemSchema),
+    resolver: zodResolver(serviceItemSchema) as Resolver<ServiceItemFormValues>,
     defaultValues: {
       serviceName: "",
       price: 0,

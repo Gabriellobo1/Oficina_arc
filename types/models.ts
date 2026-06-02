@@ -7,6 +7,7 @@ export interface Part {
   currentQty: number;
   minQty: number;
   price: number;
+  supplier?: string;
 }
 
 export interface Employee {

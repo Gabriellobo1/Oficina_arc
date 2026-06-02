@@ -1,18 +1,15 @@
-import { TrendingUp, TrendingDown, Minus, LucideIcon } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, LucideIcon, Wrench, Users, Receipt, DollarSign, Package, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { KpiData } from "@/types/dashboard";
-import {
-  TrendingUp as TrendingUpIcon,
-  Wrench,
-  Users,
-  Receipt,
-} from "lucide-react";
 
 const iconMap: Record<string, LucideIcon> = {
-  TrendingUp: TrendingUpIcon,
+  TrendingUp,
   Wrench,
   Users,
   Receipt,
+  DollarSign,
+  Package,
+  Star,
 };
 
 interface KpiCardProps {
@@ -20,7 +17,7 @@ interface KpiCardProps {
 }
 
 export function KpiCard({ data }: KpiCardProps) {
-  const Icon = iconMap[data.icon] ?? TrendingUpIcon;
+  const Icon = iconMap[data.icon] ?? TrendingUp;
 
   const ChangeIcon =
     data.changeType === "positive"
@@ -36,7 +33,7 @@ export function KpiCard({ data }: KpiCardProps) {
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
             {data.label}
           </p>
-          <p className="text-2xl font-700 text-foreground tracking-tight">
+          <p className="text-2xl font-bold text-foreground tracking-tight">
             {data.value}
           </p>
         </div>
@@ -48,7 +45,7 @@ export function KpiCard({ data }: KpiCardProps) {
       <div className="flex items-center gap-1.5">
         <ChangeIcon
           className={cn(
-            "h-3.5 w-3.5",
+            "h-3.5 w-3.5 shrink-0",
             data.changeType === "positive" && "text-emerald-500",
             data.changeType === "negative" && "text-red-500",
             data.changeType === "neutral" && "text-muted-foreground"
@@ -64,7 +61,6 @@ export function KpiCard({ data }: KpiCardProps) {
         >
           {data.change}
         </span>
-        <span className="text-xs text-muted-foreground">vs. mês anterior</span>
       </div>
     </div>
   );

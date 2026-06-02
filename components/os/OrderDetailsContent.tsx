@@ -34,7 +34,7 @@ export function OrderDetailsContent({ orderId }: OrderDetailsContentProps) {
     setIsSubmitting(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      updateOrderStatus(order.id, "Concluída");
+      updateOrderStatus(order!.id, "Concluída");
       toast.success("Ordem de serviço finalizada e pagamento registrado!");
       setIsPaymentModalOpen(false);
     } catch {

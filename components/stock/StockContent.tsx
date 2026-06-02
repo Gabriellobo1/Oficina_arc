@@ -4,11 +4,18 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StockTable } from "./StockTable";
 import { StockFormDialog } from "./StockFormDialog";
+import { StockFilters } from "./StockFilters";
 import { useStock } from "@/hooks/use-stock";
 
 export function StockContent() {
   const {
-    parts,
+    filteredParts,
+    suppliers,
+    filters,
+    setSupplierFilter,
+    setPriceMin,
+    setPriceMax,
+    resetFilters,
     isDialogOpen,
     setIsDialogOpen,
     form,
@@ -16,6 +23,7 @@ export function StockContent() {
     handleAdd,
     handleEdit,
     onSubmit,
+    editingPart,
   } = useStock();
 
   return (
@@ -35,7 +43,18 @@ export function StockContent() {
         </Button>
       </div>
 
-      <StockTable parts={parts} onEdit={handleEdit} />
+      <StockFilters
+        suppliers={suppliers}
+        supplierFilter={filters.supplierFilter}
+        onSupplierChange={setSupplierFilter}
+        priceMin={filters.priceMin}
+        priceMax={filters.priceMax}
+        onPriceMinChange={setPriceMin}
+        onPriceMaxChange={setPriceMax}
+        onReset={resetFilters}
+      />
+
+      <StockTable parts={filteredParts} onEdit={handleEdit} />
 
       <StockFormDialog
         open={isDialogOpen}
@@ -43,7 +62,7 @@ export function StockContent() {
         form={form}
         onSubmit={onSubmit}
         isSubmitting={isSubmitting}
-        isEditing={!!form.getValues("sku") && parts.some(p => p.sku === form.getValues("sku"))}
+        isEditing={!!editingPart}
       />
     </div>
   );

@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Trash2, PackageSearch } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -41,7 +41,7 @@ interface PartsTabProps {
 
 export function PartsTab({ order }: PartsTabProps) {
   const form = useForm<PartConsumptionFormValues>({
-    resolver: zodResolver(partConsumptionSchema),
+    resolver: zodResolver(partConsumptionSchema) as Resolver<PartConsumptionFormValues>,
     defaultValues: {
       partId: "",
       quantity: 1,

@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import type { Part } from "@/types/models";
 
 interface StockTableProps {
@@ -26,6 +27,7 @@ export function StockTable({ parts, onEdit }: StockTableProps) {
             <TableHead className="w-[80px]">Status</TableHead>
             <TableHead>Peça</TableHead>
             <TableHead className="hidden md:table-cell">SKU</TableHead>
+            <TableHead className="hidden lg:table-cell">Fornecedor</TableHead>
             <TableHead className="text-right">Estoque Atual</TableHead>
             <TableHead className="text-right hidden sm:table-cell">Estoque Mín.</TableHead>
             <TableHead className="text-right">Preço</TableHead>
@@ -34,13 +36,18 @@ export function StockTable({ parts, onEdit }: StockTableProps) {
         </TableHeader>
         <TableBody>
           {parts.map((part) => {
-            const isAlert = part.currentQty <= part.minQty;
             const isCritical = part.currentQty === 0;
+            const isLow = !isCritical && part.currentQty <= part.minQty;
 
             return (
               <TableRow
                 key={part.id}
-                className="border-border hover:bg-muted/30 transition-colors duration-150"
+                className={cn(
+                  "border-border transition-colors duration-150",
+                  isCritical && "bg-destructive/5 hover:bg-destructive/10",
+                  isLow && "bg-amber-500/5 hover:bg-amber-500/10",
+                  !isCritical && !isLow && "hover:bg-muted/30"
+                )}
               >
                 <TableCell>
                   {isCritical ? (
@@ -48,7 +55,7 @@ export function StockTable({ parts, onEdit }: StockTableProps) {
                       <AlertTriangle className="h-3 w-3" />
                       Falta
                     </Badge>
-                  ) : isAlert ? (
+                  ) : isLow ? (
                     <Badge
                       variant="secondary"
                       className="bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 flex w-fit items-center gap-1"
@@ -70,8 +77,11 @@ export function StockTable({ parts, onEdit }: StockTableProps) {
                 <TableCell className="text-xs font-mono text-muted-foreground hidden md:table-cell">
                   {part.sku}
                 </TableCell>
+                <TableCell className="text-sm text-muted-foreground hidden lg:table-cell">
+                  {part.supplier ?? "—"}
+                </TableCell>
                 <TableCell className="text-right font-medium">
-                  <span className={isAlert ? "text-destructive" : "text-foreground"}>
+                  <span className={isCritical || isLow ? "text-destructive" : "text-foreground"}>
                     {part.currentQty}
                   </span>
                 </TableCell>
@@ -98,8 +108,8 @@ export function StockTable({ parts, onEdit }: StockTableProps) {
 
           {parts.length === 0 && (
             <TableRow>
-              <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                Nenhuma peça cadastrada no estoque.
+              <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
+                Nenhuma peça encontrada com os filtros aplicados.
               </TableCell>
             </TableRow>
           )}
