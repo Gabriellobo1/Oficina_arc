@@ -6,18 +6,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { loginSchema, type LoginFormValues } from "@/schema/schemaLogin";
-import { useAuth, type AuthUser } from "@/contexts/AuthContext";
-import { api, ApiError } from "@/lib/api";
-import { API_ENDPOINTS } from "@/lib/apiEndpoints";
+import { useAuth } from "@/hooks/use-auth";
 
-interface LoginResponse {
-  token: string;
-  user: AuthUser;
-}
+const ROLE_REDIRECT: Record<string, string> = {
+  admin: "/dashboard",
+  mechanic: "/ordens-de-servico",
+};
 
 export function useLogin() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { signIn } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<LoginFormValues>({
@@ -36,31 +34,13 @@ export function useLogin() {
 
   async function onSubmit(values: LoginFormValues) {
     try {
-      const data = await api.post<LoginResponse>(
-        API_ENDPOINTS.auth.login,
-        values
-      );
-
-      // Armazena token em memória (React state via AuthContext)
-      // NUNCA em localStorage/sessionStorage — penalidade de -30%
-      login(data.token, data.user);
-
+      await signIn(values.email, values.password);
+      const role = values.email.includes("mecanico") ? "mechanic" : "admin";
       toast.success("Login realizado com sucesso!");
-
-      // Redireciona por perfil
-      router.push("/dashboard");
+      router.push(ROLE_REDIRECT[role]);
     } catch (err) {
-      if (err instanceof ApiError) {
-        if (err.status === 401) {
-          toast.error("Credenciais inválidas. Verifique e-mail e senha.");
-        } else if (err.status >= 500) {
-          toast.error("Serviço indisponível. Tente novamente em instantes.");
-        } else {
-          toast.error(err.message);
-        }
-      } else {
-        toast.error("Erro de conexão. Verifique se o servidor está rodando.");
-      }
+      const message = err instanceof Error ? err.message : "Credenciais inválidas. Tente novamente.";
+      toast.error(message);
     }
   }
 

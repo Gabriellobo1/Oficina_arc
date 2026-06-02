@@ -40,7 +40,7 @@ export function StockFormDialog({
 }: StockFormDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[440px]">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Editar Peça" : "Adicionar Peça"}</DialogTitle>
           <DialogDescription>
@@ -50,35 +50,49 @@ export function StockFormDialog({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nome da Peça</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ex: Pastilha de Freio" disabled={isSubmitting} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="sku"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Código / SKU</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ex: PA-FR-01" disabled={isSubmitting} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem className="col-span-2">
+                    <FormLabel>Nome da Peça</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Pastilha de Freio" disabled={isSubmitting} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="sku"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Código / SKU</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: PA-FR-01" disabled={isSubmitting} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="supplier"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Fornecedor</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Bosch" disabled={isSubmitting} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <FormField
                 control={form.control}
                 name="currentQty"
@@ -106,23 +120,23 @@ export function StockFormDialog({
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={form.control}
+                name="price"
+                render={({ field }) => (
+                  <FormItem className="col-span-2">
+                    <FormLabel>Preço Unitário (R$)</FormLabel>
+                    <FormControl>
+                      <Input type="number" step="0.01" disabled={isSubmitting} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
-            <FormField
-              control={form.control}
-              name="price"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Preço Unitário (R$)</FormLabel>
-                  <FormControl>
-                    <Input type="number" step="0.01" disabled={isSubmitting} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="mt-4 flex justify-end gap-2">
+            <div className="mt-2 flex justify-end gap-2">
               <Button
                 type="button"
                 variant="ghost"

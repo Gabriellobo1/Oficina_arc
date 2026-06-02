@@ -18,7 +18,7 @@ import {
   Shield,
 } from "lucide-react";
 import { SidebarNavItem } from "./SidebarNavItem";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -45,16 +45,16 @@ const secondaryNavItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
 
-  const isGerente = user?.role === "gerente";
+  const isGerente = user?.role === "gerente" || user?.role === "admin";
 
   const mainNavItems = isGerente
     ? [...commonNavItems, ...gerenteNavItems]
     : commonNavItems;
 
   function handleLogout() {
-    logout();
+    signOut();
     toast.success("Sessão encerrada com sucesso.");
     router.push("/login");
   }

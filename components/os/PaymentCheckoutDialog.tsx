@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, CreditCard, Banknote, Landmark, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";

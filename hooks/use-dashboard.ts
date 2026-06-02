@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import type {
   KpiData,
   RecentOrder,
@@ -6,7 +7,21 @@ import type {
   ServiceRankingItem,
 } from "@/types/dashboard";
 
-const kpiData: KpiData[] = [
+const BASE_KPI: KpiData[] = [
+  {
+    label: "OS Abertas",
+    value: "12",
+    change: "+3 hoje",
+    changeType: "neutral",
+    icon: "Wrench",
+  },
+  {
+    label: "Receita do Dia",
+    value: "R$ 2.840,00",
+    change: "+18,2%",
+    changeType: "positive",
+    icon: "DollarSign",
+  },
   {
     label: "Receita do Mês",
     value: "R$ 38.450,00",
@@ -15,11 +30,11 @@ const kpiData: KpiData[] = [
     icon: "TrendingUp",
   },
   {
-    label: "OS Abertas",
-    value: "12",
-    change: "+3 hoje",
-    changeType: "neutral",
-    icon: "Wrench",
+    label: "Peças em Alerta",
+    value: "4",
+    change: "reposição urgente",
+    changeType: "negative",
+    icon: "Package",
   },
   {
     label: "Clientes Cadastrados",
@@ -29,15 +44,15 @@ const kpiData: KpiData[] = [
     icon: "Users",
   },
   {
-    label: "Ticket Médio",
-    value: "R$ 420,00",
-    change: "-2,1%",
-    changeType: "negative",
-    icon: "Receipt",
+    label: "Nota Média de Atendimento",
+    value: "4,7",
+    change: "+0,2 vs. mês anterior",
+    changeType: "positive",
+    icon: "Star",
   },
 ];
 
-const recentOrders: RecentOrder[] = [
+const RECENT_ORDERS: RecentOrder[] = [
   {
     id: "OS-0041",
     clientName: "João Pereira",
@@ -80,14 +95,14 @@ const recentOrders: RecentOrder[] = [
   },
 ];
 
-const stockAlerts: StockAlert[] = [
+const STOCK_ALERTS: StockAlert[] = [
   { id: "P001", partName: "Filtro de Óleo Premium", currentQty: 2, minQty: 10, unit: "un" },
   { id: "P002", partName: "Pastilha de Freio Dianteira", currentQty: 4, minQty: 8, unit: "jogo" },
   { id: "P003", partName: "Correia Dentada 110 dentes", currentQty: 1, minQty: 5, unit: "un" },
   { id: "P004", partName: "Fluido de Freio DOT 4", currentQty: 3, minQty: 12, unit: "L" },
 ];
 
-const revenueData: RevenueDataPoint[] = [
+const REVENUE_DATA: RevenueDataPoint[] = [
   { month: "Dez", revenue: 28000, laborRevenue: 18000, partsRevenue: 10000 },
   { month: "Jan", revenue: 32000, laborRevenue: 21000, partsRevenue: 11000 },
   { month: "Fev", revenue: 27500, laborRevenue: 17000, partsRevenue: 10500 },
@@ -96,7 +111,7 @@ const revenueData: RevenueDataPoint[] = [
   { month: "Mai", revenue: 38450, laborRevenue: 25000, partsRevenue: 13450 },
 ];
 
-const servicesRanking: ServiceRankingItem[] = [
+const SERVICES_RANKING: ServiceRankingItem[] = [
   { rank: 1, serviceName: "Troca de Óleo e Filtro", count: 48, totalRevenue: "R$ 7.200,00" },
   { rank: 2, serviceName: "Alinhamento e Balanceamento", count: 31, totalRevenue: "R$ 5.580,00" },
   { rank: 3, serviceName: "Revisão de Freios", count: 22, totalRevenue: "R$ 8.800,00" },
@@ -104,7 +119,23 @@ const servicesRanking: ServiceRankingItem[] = [
   { rank: 5, serviceName: "Troca de Correia Dentada", count: 12, totalRevenue: "R$ 9.600,00" },
 ];
 
+const POLL_INTERVAL_MS = 30_000;
+
 export function useDashboard() {
+  const [kpiData, setKpiData] = useState<KpiData[]>(BASE_KPI);
+  const [recentOrders] = useState<RecentOrder[]>(RECENT_ORDERS);
+  const [stockAlerts] = useState<StockAlert[]>(STOCK_ALERTS);
+  const [revenueData] = useState<RevenueDataPoint[]>(REVENUE_DATA);
+  const [servicesRanking] = useState<ServiceRankingItem[]>(SERVICES_RANKING);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setKpiData((prev) => [...prev]);
+    }, POLL_INTERVAL_MS);
+
+    return () => clearInterval(id);
+  }, []);
+
   return {
     kpiData,
     recentOrders,

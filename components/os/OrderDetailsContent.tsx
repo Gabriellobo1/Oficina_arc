@@ -38,7 +38,7 @@ export function OrderDetailsContent({ orderId }: OrderDetailsContentProps) {
     setIsSubmitting(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      updateOrderStatus(order.id, "Concluído");
+      updateOrderStatus(order.id, "Concluída");
       toast.success("Ordem de serviço finalizada e pagamento registrado!");
       setIsPaymentModalOpen(false);
     } catch {
@@ -48,7 +48,7 @@ export function OrderDetailsContent({ orderId }: OrderDetailsContentProps) {
     }
   }
 
-  const isConcluido = order.status === "Concluído";
+  const isConcluido = order.status === "Concluída";
   const jaAvaliado = !!order.rating;
 
   return (

@@ -1,8 +1,15 @@
 "use client";
 
-import { Moon, Sun, Bell, ChevronDown } from "lucide-react";
+import { Moon, Sun, Bell, ChevronDown, LogOut } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
+
+const ROLE_LABEL: Record<string, string> = {
+  admin: "Gestor",
+  mechanic: "Mecânico",
+};
 
 interface HeaderProps {
   title: string;
@@ -11,6 +18,13 @@ interface HeaderProps {
 
 export function Header({ title, subtitle }: HeaderProps) {
   const { theme, setTheme } = useTheme();
+  const { user, signOut } = useAuth();
+  const router = useRouter();
+
+  function handleSignOut() {
+    signOut();
+    router.push("/login");
+  }
 
   return (
     <header className="flex h-16 items-center justify-between border-b border-border bg-card px-6">
@@ -39,15 +53,31 @@ export function Header({ title, subtitle }: HeaderProps) {
         </Button>
 
         <div className="flex items-center gap-2 ml-2 pl-2 border-l border-border">
-          <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
-            <span className="text-xs font-semibold text-white">AD</span>
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600">
+            <span className="text-xs font-semibold text-white">
+              {user?.initials ?? "??"}
+            </span>
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-medium text-foreground leading-tight">Admin</span>
-            <span className="text-xs text-muted-foreground">Gestor</span>
+            <span className="text-sm font-medium text-foreground leading-tight">
+              {user?.name ?? "Usuário"}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {user ? ROLE_LABEL[user.role] : ""}
+            </span>
           </div>
           <ChevronDown className="h-4 w-4 text-muted-foreground ml-1" />
         </div>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 text-muted-foreground hover:text-destructive"
+          onClick={handleSignOut}
+        >
+          <LogOut className="h-4 w-4" />
+          <span className="sr-only">Sair</span>
+        </Button>
       </div>
     </header>
   );

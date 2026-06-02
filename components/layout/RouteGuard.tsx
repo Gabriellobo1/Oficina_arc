@@ -2,16 +2,16 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth, type UserRole } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/use-auth";
 
 interface RouteGuardProps {
   children: React.ReactNode;
   /**
    * Perfil mínimo exigido para acessar esta rota.
    * - undefined → apenas autenticação é necessária
-   * - "gerente"  → somente Gerentes passam
+   * - "gerente"  → somente Gerentes/Admins passam
    */
-  requiredRole?: UserRole;
+  requiredRole?: string;
 }
 
 export function RouteGuard({ children, requiredRole }: RouteGuardProps) {
@@ -24,14 +24,28 @@ export function RouteGuard({ children, requiredRole }: RouteGuardProps) {
       return;
     }
 
-    if (requiredRole && user?.role !== requiredRole) {
-      router.replace("/acesso-negado");
+    if (requiredRole) {
+      const isAllowed =
+        (requiredRole === "gerente" || requiredRole === "admin")
+          ? (user?.role === "gerente" || user?.role === "admin")
+          : (user?.role === requiredRole);
+
+      if (!isAllowed) {
+        router.replace("/acesso-negado");
+      }
     }
   }, [isAuthenticated, user, requiredRole, router]);
 
   if (!isAuthenticated) return null;
 
-  if (requiredRole && user?.role !== requiredRole) return null;
+  if (requiredRole) {
+    const isAllowed =
+      (requiredRole === "gerente" || requiredRole === "admin")
+        ? (user?.role === "gerente" || user?.role === "admin")
+        : (user?.role === requiredRole);
+
+    if (!isAllowed) return null;
+  }
 
   return <>{children}</>;
 }

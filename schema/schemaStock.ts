@@ -6,6 +6,7 @@ export const partSchema = z.object({
   currentQty: z.coerce.number().min(0, "Quantidade não pode ser negativa"),
   minQty: z.coerce.number().min(1, "Quantidade mínima deve ser pelo menos 1"),
   price: z.coerce.number().min(0.01, "Preço inválido"),
+  supplier: z.string().optional(),
 });
 
 export type PartFormValues = z.infer<typeof partSchema>;
