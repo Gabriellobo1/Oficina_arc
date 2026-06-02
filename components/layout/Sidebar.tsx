@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
@@ -14,19 +14,27 @@ import {
   Star,
   BarChart3,
   Settings,
+  LogOut,
+  Shield,
 } from "lucide-react";
 import { SidebarNavItem } from "./SidebarNavItem";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
-
-const mainNavItems = [
+const commonNavItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/clientes", label: "Clientes", icon: Users },
   { href: "/veiculos", label: "Veículos", icon: Car },
-  { href: "/funcionarios", label: "Funcionários", icon: UserCog },
   { href: "/ordens-de-servico", label: "Ordens de Serviço", icon: ClipboardList },
   { href: "/pecas", label: "Peças / Estoque", icon: Package },
-  { href: "/pagamentos", label: "Pagamentos", icon: CreditCard },
   { href: "/avaliacoes", label: "Avaliações", icon: Star },
+];
+
+// Itens exclusivos do perfil Gerente
+const gerenteNavItems = [
+  { href: "/funcionarios", label: "Funcionários", icon: UserCog },
+  { href: "/pagamentos", label: "Pagamentos", icon: CreditCard },
   { href: "/relatorios", label: "Relatórios", icon: BarChart3 },
 ];
 
@@ -36,6 +44,20 @@ const secondaryNavItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, logout } = useAuth();
+
+  const isGerente = user?.role === "gerente";
+
+  const mainNavItems = isGerente
+    ? [...commonNavItems, ...gerenteNavItems]
+    : commonNavItems;
+
+  function handleLogout() {
+    logout();
+    toast.success("Sessão encerrada com sucesso.");
+    router.push("/login");
+  }
 
   return (
     <aside className="flex h-full w-64 flex-col" style={{ background: "hsl(var(--sidebar))" }}>
@@ -64,6 +86,34 @@ export function Sidebar() {
           </span>
         </div>
       </div>
+
+      {/* Perfil do usuário logado */}
+      {user && (
+        <div
+          className="flex items-center gap-3 px-4 py-3 border-b"
+          style={{ borderColor: "hsl(var(--sidebar-border))" }}
+        >
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 shrink-0">
+            <span className="text-xs font-semibold text-primary">
+              {user.name.charAt(0).toUpperCase()}
+            </span>
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span
+              className="text-xs font-medium truncate"
+              style={{ color: "hsl(var(--sidebar-foreground))" }}
+            >
+              {user.name}
+            </span>
+            <div className="flex items-center gap-1">
+              <Shield className="h-2.5 w-2.5" style={{ color: "hsl(var(--sidebar-muted))" }} />
+              <span className="text-xs capitalize" style={{ color: "hsl(var(--sidebar-muted))" }}>
+                {user.role}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-4">
         <div className="flex flex-col gap-0.5">
@@ -100,10 +150,21 @@ export function Sidebar() {
       </nav>
 
       <div
-        className="border-t px-4 py-4"
+        className="border-t px-3 py-3 flex flex-col gap-2"
         style={{ borderColor: "hsl(var(--sidebar-border))" }}
       >
-        <p className="text-xs" style={{ color: "hsl(var(--sidebar-muted))" }}>
+        <Button
+          id="sidebar-logout-btn"
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start gap-2 text-xs"
+          style={{ color: "hsl(var(--sidebar-muted))" }}
+          onClick={handleLogout}
+        >
+          <LogOut className="h-3.5 w-3.5" />
+          Sair
+        </Button>
+        <p className="text-xs px-2" style={{ color: "hsl(var(--sidebar-muted))" }}>
           v1.0.0
         </p>
       </div>

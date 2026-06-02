@@ -1,4 +1,4 @@
-export type OrderStatus = "Aberta" | "Em Andamento" | "Concluída" | "Cancelada";
+export type OrderStatus = "Agendado" | "Em Andamento" | "Concluído" | "Cancelado" | "No-show";
 
 export interface KpiData {
   label: string;

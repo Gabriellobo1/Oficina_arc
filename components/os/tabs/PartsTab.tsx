@@ -41,7 +41,7 @@ interface PartsTabProps {
 
 export function PartsTab({ order }: PartsTabProps) {
   const form = useForm<PartConsumptionFormValues>({
-    resolver: zodResolver(partConsumptionSchema),
+    resolver: zodResolver(partConsumptionSchema) as any,
     defaultValues: {
       partId: "",
       quantity: 1,

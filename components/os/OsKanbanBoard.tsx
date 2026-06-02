@@ -9,10 +9,10 @@ import { useOrders } from "@/hooks/use-orders";
 import type { Order, OrderStatus } from "@/types/models";
 
 const COLUMNS: { id: OrderStatus; label: string; color: string }[] = [
-  { id: "Aberta", label: "Abertas", color: "border-blue-500/30 bg-blue-500/10 text-blue-500" },
+  { id: "Agendado", label: "Agendados", color: "border-blue-500/30 bg-blue-500/10 text-blue-500" },
   { id: "Em Andamento", label: "Em Andamento", color: "border-amber-500/30 bg-amber-500/10 text-amber-500" },
-  { id: "Aguardando Peça", label: "Aguardando Peças", color: "border-purple-500/30 bg-purple-500/10 text-purple-500" },
-  { id: "Concluída", label: "Concluídas", color: "border-emerald-500/30 bg-emerald-500/10 text-emerald-500" },
+  { id: "Concluído", label: "Concluídas", color: "border-emerald-500/30 bg-emerald-500/10 text-emerald-500" },
+  { id: "Cancelado", label: "Cancelados", color: "border-red-500/30 bg-red-500/10 text-red-500" },
 ];
 
 function OrderCard({ order, onClick }: { order: Order; onClick: () => void }) {
@@ -46,10 +46,13 @@ function OrderCard({ order, onClick }: { order: Order; onClick: () => void }) {
           <Clock className="h-3 w-3" />
           <span>{new Date(order.createdAt).toLocaleDateString("pt-BR")}</span>
         </div>
-        {order.status === "Aguardando Peça" && (
-          <AlertCircle className="h-4 w-4 text-purple-500" />
+        {order.status === "Cancelado" && (
+          <AlertCircle className="h-4 w-4 text-red-500" />
         )}
-        {order.status === "Concluída" && (
+        {order.status === "No-show" && (
+          <AlertCircle className="h-4 w-4 text-orange-400" />
+        )}
+        {order.status === "Concluído" && (
           <CheckCircle2 className="h-4 w-4 text-emerald-500" />
         )}
       </div>

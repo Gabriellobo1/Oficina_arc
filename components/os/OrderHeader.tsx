@@ -59,7 +59,7 @@ export function OrderHeader({ order, onFinishOrder }: OrderHeaderProps) {
             </span>
           </div>
 
-          {order.status !== "Concluída" && order.status !== "Cancelada" && (
+          {order.status !== "Concluído" && order.status !== "Cancelado" && order.status !== "No-show" && (
             <Button onClick={onFinishOrder} className="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 text-white">
               <CheckCircle2 className="mr-2 h-4 w-4" />
               Finalizar OS

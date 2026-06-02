@@ -40,7 +40,7 @@ export function StockContent() {
       <StockFormDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
-        form={form}
+        form={form as any}
         onSubmit={onSubmit}
         isSubmitting={isSubmitting}
         isEditing={!!form.getValues("sku") && parts.some(p => p.sku === form.getValues("sku"))}

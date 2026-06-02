@@ -1,4 +1,9 @@
-export type OrderStatus = "Aberta" | "Em Andamento" | "Aguardando Peça" | "Concluída" | "Cancelada";
+export type OrderStatus =
+  | "Agendado"
+  | "Em Andamento"
+  | "Concluído"
+  | "Cancelado"
+  | "No-show";
 
 export interface Part {
   id: string;
@@ -42,6 +47,9 @@ export interface Order {
   parts: PartConsumption[];
   total: number;
   createdAt: string;
+  closedAt?: string;
   paymentMethod?: string;
   installments?: number;
+  rating?: number;
+  ratingComment?: string;
 }

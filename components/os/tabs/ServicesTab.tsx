@@ -41,7 +41,7 @@ interface ServicesTabProps {
 
 export function ServicesTab({ order }: ServicesTabProps) {
   const form = useForm<ServiceItemFormValues>({
-    resolver: zodResolver(serviceItemSchema),
+    resolver: zodResolver(serviceItemSchema) as any,
     defaultValues: {
       serviceName: "",
       price: 0,

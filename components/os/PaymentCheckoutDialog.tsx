@@ -47,7 +47,7 @@ export function PaymentCheckoutDialog({
   isSubmitting,
 }: PaymentCheckoutDialogProps) {
   const form = useForm<PaymentFormValues>({
-    resolver: zodResolver(paymentSchema),
+    resolver: zodResolver(paymentSchema) as any,
     defaultValues: {
       method: "credit_card",
       installments: 1,

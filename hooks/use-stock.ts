@@ -19,7 +19,7 @@ export function useStock() {
   const [editingPart, setEditingPart] = useState<Part | null>(null);
 
   const form = useForm<PartFormValues>({
-    resolver: zodResolver(partSchema),
+    resolver: zodResolver(partSchema) as any,
     defaultValues: {
       name: "",
       sku: "",

@@ -18,21 +18,25 @@ const statusConfig: Record<
   OrderStatus,
   { label: string; className: string }
 > = {
-  Aberta: {
-    label: "Aberta",
+  Agendado: {
+    label: "Agendado",
     className: "bg-blue-500/10 text-blue-500 border-blue-500/20",
   },
   "Em Andamento": {
     label: "Em Andamento",
     className: "bg-amber-500/10 text-amber-500 border-amber-500/20",
   },
-  Concluída: {
-    label: "Concluída",
+  "Concluído": {
+    label: "Concluído",
     className: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
   },
-  Cancelada: {
-    label: "Cancelada",
+  Cancelado: {
+    label: "Cancelado",
     className: "bg-red-500/10 text-red-500 border-red-500/20",
+  },
+  "No-show": {
+    label: "No-show",
+    className: "bg-orange-500/10 text-orange-400 border-orange-500/20",
   },
 };
 
