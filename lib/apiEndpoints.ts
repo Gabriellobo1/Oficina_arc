@@ -1,18 +1,17 @@
-/**
- * Endpoints da API REST do backend.
- * Altere BASE_URL conforme o ambiente (dev/prod).
- */
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
 
 export const API_ENDPOINTS = {
-  // Auth
   auth: {
     login: "/api/auth/login",
+    me: "/api/auth/me",
     refresh: "/api/auth/refresh",
   },
 
-  // Clientes
+  dashboard: {
+    kpis: "/api/dashboard",
+  },
+
   clientes: {
     list: "/api/clientes",
     create: "/api/clientes",
@@ -21,13 +20,12 @@ export const API_ENDPOINTS = {
     delete: (id: string) => `/api/clientes/${id}`,
   },
 
-  // Veículos
   veiculos: {
+    list: "/api/veiculos",
     create: "/api/veiculos",
     getByPlaca: (placa: string) => `/api/veiculos/${placa}`,
   },
 
-  // Funcionários
   funcionarios: {
     list: "/api/funcionarios",
     create: "/api/funcionarios",
@@ -36,7 +34,6 @@ export const API_ENDPOINTS = {
     delete: (id: string) => `/api/funcionarios/${id}`,
   },
 
-  // Agendamentos / Ordens de Serviço
   agendamentos: {
     list: "/api/agendamentos",
     create: "/api/agendamentos",
@@ -48,7 +45,6 @@ export const API_ENDPOINTS = {
     registrarAvaliacao: (id: string) => `/api/agendamentos/${id}/avaliacao`,
   },
 
-  // Peças / Estoque
   pecas: {
     list: "/api/pecas",
     create: "/api/pecas",
@@ -58,9 +54,18 @@ export const API_ENDPOINTS = {
     abaixoEstoqueMinimo: "/api/pecas/abaixo-estoque-minimo",
   },
 
-  // Relatórios
+  tipoServico: {
+    list: "/api/tipo-servico",
+    create: "/api/tipo-servico",
+    getById: (id: string) => `/api/tipo-servico/${id}`,
+    update: (id: string) => `/api/tipo-servico/${id}`,
+    delete: (id: string) => `/api/tipo-servico/${id}`,
+  },
+
   relatorios: {
     receitaMensal: "/api/relatorios/receita-mensal",
     rankingServicos: "/api/relatorios/ranking-servicos",
+    rankingFuncionarios: "/api/relatorios/ranking-funcionarios",
+    notaMediaFuncionarios: "/api/relatorios/nota-media-funcionarios",
   },
 } as const;

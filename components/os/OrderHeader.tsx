@@ -3,14 +3,18 @@ import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
-import type { Order } from "@/types/models";
+import type { OrdemDetalheAPI } from "@/hooks/use-order-detail";
+import { STATUS_LABEL } from "@/hooks/use-orders";
+
+const CLOSED_STATUSES = new Set(["CONCLUIDO", "CANCELADO", "NO_SHOW"]);
 
 interface OrderHeaderProps {
-  order: Order;
+  order: OrdemDetalheAPI;
+  total: number;
   onFinishOrder: () => void;
 }
 
-export function OrderHeader({ order, onFinishOrder }: OrderHeaderProps) {
+export function OrderHeader({ order, total, onFinishOrder }: OrderHeaderProps) {
   const router = useRouter();
 
   return (
@@ -28,25 +32,25 @@ export function OrderHeader({ order, onFinishOrder }: OrderHeaderProps) {
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-3">
             <h2 className="text-2xl font-bold tracking-tight text-foreground">
-              {order.id}
+              {order.id.slice(0, 8).toUpperCase()}
             </h2>
             <Badge variant="outline" className="border-primary/50 text-primary bg-primary/10">
-              {order.status}
+              {STATUS_LABEL[order.status] ?? order.status}
             </Badge>
           </div>
 
           <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1.5">
               <User className="h-4 w-4" />
-              <span>{order.clientName}</span>
+              <span>{order.veiculo.cliente.nome}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Car className="h-4 w-4" />
-              <span>{order.vehicle}</span>
+              <span>{order.veiculo.marca} {order.veiculo.modelo} — {order.veiculo.placa}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Clock className="h-4 w-4" />
-              <span>{new Date(order.createdAt).toLocaleDateString("pt-BR")}</span>
+              <span>{new Date(order.aberturaEm).toLocaleDateString("pt-BR")}</span>
             </div>
           </div>
         </div>
@@ -55,11 +59,11 @@ export function OrderHeader({ order, onFinishOrder }: OrderHeaderProps) {
           <div className="flex flex-col gap-1 md:text-right">
             <span className="text-sm font-medium text-muted-foreground">Total da OS</span>
             <span className="text-3xl font-bold text-foreground">
-              {formatCurrency(order.total)}
+              {formatCurrency(total)}
             </span>
           </div>
 
-          {order.status !== "Concluído" && order.status !== "Cancelado" && order.status !== "No-show" && (
+          {!CLOSED_STATUSES.has(order.status) && (
             <Button onClick={onFinishOrder} className="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 text-white">
               <CheckCircle2 className="mr-2 h-4 w-4" />
               Finalizar OS
@@ -72,25 +76,25 @@ export function OrderHeader({ order, onFinishOrder }: OrderHeaderProps) {
         <div className="glass-card flex flex-col gap-1 rounded-lg p-4">
           <span className="text-xs text-muted-foreground">Odômetro Entrada</span>
           <span className="font-mono text-sm font-medium text-foreground">
-            {order.odometerIn ? `${order.odometerIn} km` : "N/I"}
+            {order.km_entrada ? `${order.km_entrada} km` : "N/I"}
           </span>
         </div>
         <div className="glass-card flex flex-col gap-1 rounded-lg p-4">
           <span className="text-xs text-muted-foreground">Odômetro Saída</span>
           <span className="font-mono text-sm font-medium text-foreground">
-            {order.odometerOut ? `${order.odometerOut} km` : "Em andamento"}
+            {order.km_saida ? `${order.km_saida} km` : "Em andamento"}
           </span>
         </div>
         <div className="glass-card flex flex-col gap-1 rounded-lg p-4">
           <span className="text-xs text-muted-foreground">Qtd. Serviços</span>
           <span className="text-sm font-medium text-foreground">
-            {order.services.length}
+            {order.itensServico.length}
           </span>
         </div>
         <div className="glass-card flex flex-col gap-1 rounded-lg p-4">
           <span className="text-xs text-muted-foreground">Qtd. Peças</span>
           <span className="text-sm font-medium text-foreground">
-            {order.parts.reduce((acc, curr) => acc + curr.quantity, 0)}
+            {order.itensPeca.reduce((acc, i) => acc + i.quantidade, 0)}
           </span>
         </div>
       </div>

@@ -3,6 +3,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { avaliacaoSchema, type AvaliacaoFormValues } from "@/schema/schemaAvaliacao";
+import { api } from "@/lib/api";
+import { API_ENDPOINTS } from "@/lib/apiEndpoints";
+import { useAuth } from "@/hooks/use-auth";
 
 interface UseAvaliacaoOptions {
   orderId: string;
@@ -11,6 +14,7 @@ interface UseAvaliacaoOptions {
 }
 
 export function useAvaliacao({ orderId, onSuccess, onClose }: UseAvaliacaoOptions) {
+  const { getToken } = useAuth();
   const [hoverNota, setHoverNota] = useState(0);
 
   const form = useForm<AvaliacaoFormValues>({
@@ -26,15 +30,21 @@ export function useAvaliacao({ orderId, onSuccess, onClose }: UseAvaliacaoOption
 
   async function onSubmit(values: AvaliacaoFormValues) {
     try {
-      // Stub — substituir por: await api.post(API_ENDPOINTS.agendamentos.registrarAvaliacao(orderId), values, { token })
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      await api.post(
+        API_ENDPOINTS.agendamentos.registrarAvaliacao(orderId),
+        { nota: values.nota, comentario: values.comentario },
+        { token: getToken() }
+      );
 
-      toast.success(`Avaliação de ${values.nota} estrela${values.nota !== 1 ? "s" : ""} registrada com sucesso!`);
+      toast.success(
+        `Avaliação de ${values.nota} estrela${values.nota !== 1 ? "s" : ""} registrada com sucesso!`
+      );
       onSuccess?.(values.nota, values.comentario);
       onClose?.();
       form.reset();
-    } catch {
-      toast.error("Erro ao registrar a avaliação. Tente novamente.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erro ao registrar a avaliação.";
+      toast.error(message);
     }
   }
 

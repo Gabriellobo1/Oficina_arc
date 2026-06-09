@@ -5,16 +5,18 @@ import {
   appointmentSchema,
   type AppointmentFormValues,
 } from "@/schema/schemaAppointment";
+import { api } from "@/lib/api";
+import { API_ENDPOINTS } from "@/lib/apiEndpoints";
+import { useAuth } from "@/hooks/use-auth";
 
 interface UseAppointmentFormProps {
   vehicleId?: string;
   onSuccess?: () => void;
 }
 
-export function useAppointmentForm({
-  vehicleId,
-  onSuccess,
-}: UseAppointmentFormProps) {
+export function useAppointmentForm({ vehicleId, onSuccess }: UseAppointmentFormProps) {
+  const { getToken } = useAuth();
+
   const form = useForm<AppointmentFormValues>({
     resolver: zodResolver(appointmentSchema),
     defaultValues: {
@@ -30,13 +32,25 @@ export function useAppointmentForm({
 
   async function onSubmit(values: AppointmentFormValues) {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1200));
-      console.info("Appointment scheduled:", values);
+      const dataHora = new Date(`${values.date}T${values.time}:00`);
+
+      await api.post(
+        API_ENDPOINTS.agendamentos.create,
+        {
+          veiculoId: values.vehicleId,
+          aberturaEm: dataHora.toISOString(),
+          km_entrada: 0,
+          observacoes: values.description,
+        },
+        { token: getToken() }
+      );
+
       toast.success("Agendamento realizado com sucesso!");
       form.reset();
       onSuccess?.();
-    } catch {
-      toast.error("Erro ao realizar o agendamento. Tente novamente.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erro ao realizar o agendamento.";
+      toast.error(message);
     }
   }
 

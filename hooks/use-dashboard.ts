@@ -1,140 +1,172 @@
-import { useState, useEffect } from "react";
-import type {
-  KpiData,
-  RecentOrder,
-  StockAlert,
-  RevenueDataPoint,
-  ServiceRankingItem,
-} from "@/types/dashboard";
+import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
+import { api } from "@/lib/api";
+import { API_ENDPOINTS } from "@/lib/apiEndpoints";
+import { useAuth } from "@/hooks/use-auth";
+import { STATUS_LABEL, type StatusBackend } from "@/hooks/use-orders";
+import { formatCurrency } from "@/lib/utils";
+import type { KpiData, RecentOrder, StockAlert } from "@/types/dashboard";
 
-const BASE_KPI: KpiData[] = [
-  {
-    label: "OS Abertas",
-    value: "12",
-    change: "+3 hoje",
-    changeType: "neutral",
-    icon: "Wrench",
-  },
-  {
-    label: "Receita do Dia",
-    value: "R$ 2.840,00",
-    change: "+18,2%",
-    changeType: "positive",
-    icon: "DollarSign",
-  },
-  {
-    label: "Receita do Mês",
-    value: "R$ 38.450,00",
-    change: "+12,4%",
-    changeType: "positive",
-    icon: "TrendingUp",
-  },
-  {
-    label: "Peças em Alerta",
-    value: "4",
-    change: "reposição urgente",
-    changeType: "negative",
-    icon: "Package",
-  },
-  {
-    label: "Clientes Cadastrados",
-    value: "247",
-    change: "+8 este mês",
-    changeType: "positive",
-    icon: "Users",
-  },
-  {
-    label: "Nota Média de Atendimento",
-    value: "4,7",
-    change: "+0,2 vs. mês anterior",
-    changeType: "positive",
-    icon: "Star",
-  },
-];
+interface DashboardKpisRaw {
+  totalClientes: number;
+  osAbertas: number;
+  osPorStatus: Record<string, number>;
+  receitaMes: number;
+  receitaMesAnterior: number;
+  variacaoReceita: number;
+  totalOsMes: number;
+  pecasAbaixoMinimo: number;
+  notaMedia: number | null;
+  osRecentes: {
+    id: string;
+    status: string;
+    clienteNome: string;
+    veiculo: string;
+    aberturaEm: string;
+    total: number;
+  }[];
+}
 
-const RECENT_ORDERS: RecentOrder[] = [
-  {
-    id: "OS-0041",
-    clientName: "João Pereira",
-    vehicle: "Honda Civic 2020",
-    status: "Em Andamento",
-    openedAt: "26/05/2026",
-    total: "R$ 850,00",
-  },
-  {
-    id: "OS-0040",
-    clientName: "Maria Silva",
-    vehicle: "Toyota Corolla 2019",
-    status: "Concluído",
-    openedAt: "25/05/2026",
-    total: "R$ 1.200,00",
-  },
-  {
-    id: "OS-0039",
-    clientName: "Carlos Mendes",
-    vehicle: "VW Polo 2022",
-    status: "Agendado",
-    openedAt: "25/05/2026",
-    total: "R$ 320,00",
-  },
-  {
-    id: "OS-0038",
-    clientName: "Auto Peças Rápidas Ltda",
-    vehicle: "Ford Ranger 2021",
-    status: "Concluído",
-    openedAt: "24/05/2026",
-    total: "R$ 2.100,00",
-  },
-  {
-    id: "OS-0037",
-    clientName: "Fernanda Costa",
-    vehicle: "Fiat Pulse 2023",
-    status: "Cancelado",
-    openedAt: "23/05/2026",
-    total: "R$ 0,00",
-  },
-];
+interface ReceitaMensalAPI {
+  mes: string;
+  total_os: number;
+  receita_total: number;
+  ticket_medio: number;
+}
 
-const STOCK_ALERTS: StockAlert[] = [
-  { id: "P001", partName: "Filtro de Óleo Premium", currentQty: 2, minQty: 10, unit: "un" },
-  { id: "P002", partName: "Pastilha de Freio Dianteira", currentQty: 4, minQty: 8, unit: "jogo" },
-  { id: "P003", partName: "Correia Dentada 110 dentes", currentQty: 1, minQty: 5, unit: "un" },
-  { id: "P004", partName: "Fluido de Freio DOT 4", currentQty: 3, minQty: 12, unit: "L" },
-];
+interface RankingServicosAPI {
+  nome: string;
+  total_execucoes: number;
+  faturamento_total: number;
+}
 
-const REVENUE_DATA: RevenueDataPoint[] = [
-  { month: "Dez", revenue: 28000, laborRevenue: 18000, partsRevenue: 10000 },
-  { month: "Jan", revenue: 32000, laborRevenue: 21000, partsRevenue: 11000 },
-  { month: "Fev", revenue: 27500, laborRevenue: 17000, partsRevenue: 10500 },
-  { month: "Mar", revenue: 35000, laborRevenue: 23000, partsRevenue: 12000 },
-  { month: "Abr", revenue: 34200, laborRevenue: 22500, partsRevenue: 11700 },
-  { month: "Mai", revenue: 38450, laborRevenue: 25000, partsRevenue: 13450 },
-];
-
-const SERVICES_RANKING: ServiceRankingItem[] = [
-  { rank: 1, serviceName: "Troca de Óleo e Filtro", count: 48, totalRevenue: "R$ 7.200,00" },
-  { rank: 2, serviceName: "Alinhamento e Balanceamento", count: 31, totalRevenue: "R$ 5.580,00" },
-  { rank: 3, serviceName: "Revisão de Freios", count: 22, totalRevenue: "R$ 8.800,00" },
-  { rank: 4, serviceName: "Diagnóstico Eletrônico", count: 18, totalRevenue: "R$ 3.600,00" },
-  { rank: 5, serviceName: "Troca de Correia Dentada", count: 12, totalRevenue: "R$ 9.600,00" },
-];
-
-const POLL_INTERVAL_MS = 30_000;
+interface PecaAlertaAPI {
+  id: string;
+  nome: string;
+  quantidade: number;
+  quantidade_minima: number;
+}
 
 export function useDashboard() {
-  const [kpiData, setKpiData] = useState<KpiData[]>(BASE_KPI);
-  const [recentOrders] = useState<RecentOrder[]>(RECENT_ORDERS);
-  const [stockAlerts] = useState<StockAlert[]>(STOCK_ALERTS);
-  const [revenueData] = useState<RevenueDataPoint[]>(REVENUE_DATA);
-  const [servicesRanking] = useState<ServiceRankingItem[]>(SERVICES_RANKING);
+  const { getToken, user } = useAuth();
+  const isGerente = user?.perfil === "GERENTE";
+
+  const [kpiData, setKpiData] = useState<KpiData[]>([]);
+  const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
+  const [stockAlerts, setStockAlerts] = useState<StockAlert[]>([]);
+  const [revenueData, setRevenueData] = useState<
+    { month: string; revenue: number; laborRevenue: number; partsRevenue: number }[]
+  >([]);
+  const [servicesRanking, setServicesRanking] = useState<
+    { rank: number; serviceName: string; count: number; totalRevenue: string }[]
+  >([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchAll = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const token = getToken();
+
+      // Dados básicos disponíveis para todos os perfis
+      const [kpis, alertas] = await Promise.all([
+        api.get<DashboardKpisRaw>(API_ENDPOINTS.dashboard.kpis, { token }),
+        api.get<PecaAlertaAPI[]>(API_ENDPOINTS.pecas.abaixoEstoqueMinimo, { token }),
+      ]);
+
+      setKpiData([
+        {
+          label: "Clientes Cadastrados",
+          value: String(kpis.totalClientes),
+          change: "—",
+          changeType: "neutral",
+          icon: "Users",
+        },
+        {
+          label: "OS Abertas",
+          value: String(kpis.osAbertas),
+          change: `${kpis.totalOsMes} no mês`,
+          changeType: "neutral",
+          icon: "Wrench",
+        },
+        {
+          label: "Receita do Mês",
+          value: formatCurrency(kpis.receitaMes),
+          change: `${kpis.variacaoReceita >= 0 ? "+" : ""}${kpis.variacaoReceita.toFixed(1)}% vs mês anterior`,
+          changeType: kpis.variacaoReceita >= 0 ? "positive" : "negative",
+          icon: "TrendingUp",
+        },
+        {
+          label: "Avaliação Média",
+          value: kpis.notaMedia != null ? kpis.notaMedia.toFixed(1) : "—",
+          change: "—",
+          changeType: "neutral",
+          icon: "Star",
+        },
+        {
+          label: "Peças Abaixo do Mínimo",
+          value: String(kpis.pecasAbaixoMinimo),
+          change: kpis.pecasAbaixoMinimo > 0 ? "Reposição necessária" : "Estoque OK",
+          changeType: kpis.pecasAbaixoMinimo > 0 ? "negative" : "positive",
+          icon: "Package",
+        },
+      ]);
+
+      setRecentOrders(
+        kpis.osRecentes.map((os) => ({
+          id: os.id.slice(0, 8).toUpperCase(),
+          clientName: os.clienteNome,
+          vehicle: os.veiculo,
+          status: STATUS_LABEL[os.status as StatusBackend] as RecentOrder["status"],
+          openedAt: os.aberturaEm,
+          total: formatCurrency(os.total),
+        }))
+      );
+
+      setStockAlerts(
+        alertas.map((p) => ({
+          id: p.id,
+          partName: p.nome,
+          currentQty: p.quantidade,
+          minQty: p.quantidade_minima,
+          unit: "un",
+        }))
+      );
+
+      // Gráficos de relatório: apenas Gerente tem acesso aos endpoints
+      if (isGerente) {
+        const [receita, ranking] = await Promise.all([
+          api.get<ReceitaMensalAPI[]>(API_ENDPOINTS.relatorios.receitaMensal, { token }),
+          api.get<RankingServicosAPI[]>(API_ENDPOINTS.relatorios.rankingServicos, { token }),
+        ]);
+
+        setRevenueData(
+          receita.map((r) => ({
+            month: r.mes,
+            revenue: Number(r.receita_total),
+            laborRevenue: Number(r.receita_total),
+            partsRevenue: 0,
+          }))
+        );
+
+        setServicesRanking(
+          ranking.map((s, i) => ({
+            rank: i + 1,
+            serviceName: s.nome,
+            count: Number(s.total_execucoes),
+            totalRevenue: formatCurrency(Number(s.faturamento_total)),
+          }))
+        );
+      }
+    } catch {
+      toast.error("Erro ao carregar dados do dashboard.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [getToken, isGerente]);
 
   useEffect(() => {
-    const id = setInterval(() => {
-      setKpiData((prev) => [...prev]);
-    }, POLL_INTERVAL_MS);
-
-    return () => clearInterval(id);
-  }, []);
+    fetchAll();
+  }, [fetchAll]);
 
   return {
     kpiData,
@@ -142,5 +174,8 @@ export function useDashboard() {
     stockAlerts,
     revenueData,
     servicesRanking,
+    isLoading,
+    isGerente,
+    refetch: fetchAll,
   };
 }

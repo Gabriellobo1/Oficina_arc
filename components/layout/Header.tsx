@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 
 const ROLE_LABEL: Record<string, string> = {
-  admin: "Gestor",
-  mechanic: "Mecânico",
+  GERENTE: "Gerente",
+  ATENDENTE: "Atendente",
 };
 
 interface HeaderProps {
@@ -55,15 +55,15 @@ export function Header({ title, subtitle }: HeaderProps) {
         <div className="flex items-center gap-2 ml-2 pl-2 border-l border-border">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600">
             <span className="text-xs font-semibold text-white">
-              {user?.initials ?? "??"}
+              {user?.email.charAt(0).toUpperCase() ?? "?"}
             </span>
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-medium text-foreground leading-tight">
-              {user?.name ?? "Usuário"}
+              {user?.email ?? "Usuário"}
             </span>
             <span className="text-xs text-muted-foreground">
-              {user ? ROLE_LABEL[user.role] : ""}
+              {user ? (ROLE_LABEL[user.perfil] ?? user.perfil) : ""}
             </span>
           </div>
           <ChevronDown className="h-4 w-4 text-muted-foreground ml-1" />

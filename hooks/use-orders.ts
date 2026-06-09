@@ -1,98 +1,92 @@
-import { useState } from "react";
-import type { Order, OrderStatus } from "@/types/models";
+import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
+import { api } from "@/lib/api";
+import { API_ENDPOINTS } from "@/lib/apiEndpoints";
+import { useAuth } from "@/hooks/use-auth";
 
-const INITIAL_MOCK_ORDERS: Order[] = [
-  {
-    id: "OS-2026-001",
-    clientName: "Carlos Silva",
-    vehicle: "Honda Civic 2020",
-    status: "Agendado",
-    odometerIn: 45000,
-    services: [],
-    parts: [],
-    total: 0,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "OS-2026-002",
-    clientName: "Mariana Souza",
-    vehicle: "Jeep Renegade 2021",
-    status: "Em Andamento",
-    odometerIn: 32000,
-    services: [
-      { id: "s1", serviceName: "Troca de Óleo", price: 150, employeeId: "e1" },
-    ],
-    parts: [
-      { id: "pc1", partId: "p1", quantity: 4, unitPrice: 45 },
-    ],
-    total: 330,
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    id: "OS-2026-003",
-    clientName: "Roberto Alves",
-    vehicle: "VW Polo 2019",
-    status: "Agendado",
-    odometerIn: 78000,
-    services: [
-      { id: "s2", serviceName: "Troca de Pastilhas", price: 200, employeeId: "e2" },
-    ],
-    parts: [],
-    total: 200,
-    createdAt: new Date(Date.now() - 172800000).toISOString(),
-  },
-  {
-    id: "OS-2026-004",
-    clientName: "Juliana Costa",
-    vehicle: "Toyota Corolla 2022",
-    status: "Concluído",
-    odometerIn: 25000,
-    odometerOut: 25010,
-    services: [
-      { id: "s3", serviceName: "Revisão 25k", price: 350, employeeId: "e1" },
-    ],
-    parts: [
-      { id: "pc2", partId: "p2", quantity: 1, unitPrice: 25 },
-    ],
-    total: 375,
-    createdAt: new Date(Date.now() - 259200000).toISOString(),
-    closedAt: new Date(Date.now() - 86400000).toISOString(),
-    paymentMethod: "credit_card",
-    installments: 3,
-  },
-  {
-    id: "OS-2026-005",
-    clientName: "Fernando Gomes",
-    vehicle: "Fiat Strada 2023",
-    status: "Cancelado",
-    odometerIn: 12000,
-    services: [],
-    parts: [],
-    total: 0,
-    createdAt: new Date(Date.now() - 345600000).toISOString(),
-  },
-  {
-    id: "OS-2026-006",
-    clientName: "Beatriz Mendes",
-    vehicle: "Renault Kwid 2022",
-    status: "No-show",
-    odometerIn: 8500,
-    services: [],
-    parts: [],
-    total: 0,
-    createdAt: new Date(Date.now() - 432000000).toISOString(),
-  },
-];
+export type StatusBackend =
+  | "AGENDADO"
+  | "EM_ANDAMENTO"
+  | "CONCLUIDO"
+  | "CANCELADO"
+  | "NO_SHOW";
+
+export const STATUS_LABEL: Record<StatusBackend, string> = {
+  AGENDADO: "Agendado",
+  EM_ANDAMENTO: "Em Andamento",
+  CONCLUIDO: "Concluído",
+  CANCELADO: "Cancelado",
+  NO_SHOW: "No-show",
+};
+
+export interface OrdemAPI {
+  id: string;
+  status: StatusBackend;
+  km_entrada: number;
+  km_saida?: number;
+  aberturaEm: string;
+  conclusaoEm?: string;
+  observacoes?: string;
+  veiculo: {
+    placa: string;
+    modelo: string;
+  };
+  _count: {
+    itensServico: number;
+    itensPeca: number;
+  };
+}
+
+interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  hasNextPage: boolean;
+}
 
 export function useOrders() {
-  const [orders, setOrders] = useState<Order[]>(INITIAL_MOCK_ORDERS);
+  const { getToken } = useAuth();
+  const [orders, setOrders] = useState<OrdemAPI[]>([]);
+  const [meta, setMeta] = useState<PaginationMeta>({ page: 1, limit: 50, total: 0, hasNextPage: false });
+  const [isLoading, setIsLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<StatusBackend | "">("");
 
-  function updateOrderStatus(orderId: string, newStatus: OrderStatus) {
-    setOrders((prev) =>
-      prev.map((order) =>
-        order.id === orderId ? { ...order, status: newStatus } : order
-      )
-    );
+  const fetchOrders = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const params = new URLSearchParams({ page: "1", limit: "50" });
+      if (statusFilter) params.set("status", statusFilter);
+
+      const data = await api.get<{ data: OrdemAPI[]; meta: PaginationMeta }>(
+        `${API_ENDPOINTS.agendamentos.list}?${params}`,
+        { token: getToken() }
+      );
+      setOrders(data.data);
+      setMeta(data.meta);
+    } catch {
+      toast.error("Erro ao carregar ordens de serviço.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [getToken, statusFilter]);
+
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+
+  async function updateOrderStatus(orderId: string, newStatus: StatusBackend, kmSaida?: number) {
+    try {
+      await api.patch(
+        API_ENDPOINTS.agendamentos.updateStatus(orderId),
+        { status: newStatus, km_saida: kmSaida },
+        { token: getToken() }
+      );
+      toast.success("Status atualizado com sucesso!");
+      await fetchOrders();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erro ao atualizar o status.";
+      toast.error(message);
+    }
   }
 
   function getOrderById(id: string) {
@@ -101,7 +95,12 @@ export function useOrders() {
 
   return {
     orders,
+    meta,
+    isLoading,
+    statusFilter,
+    setStatusFilter,
     updateOrderStatus,
     getOrderById,
+    refetch: fetchOrders,
   };
 }

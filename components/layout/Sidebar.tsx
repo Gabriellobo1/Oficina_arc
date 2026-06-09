@@ -47,7 +47,7 @@ export function Sidebar() {
   const router = useRouter();
   const { user, signOut } = useAuth();
 
-  const isGerente = user?.role === "gerente" || user?.role === "admin";
+  const isGerente = user?.perfil === "GERENTE";
 
   const mainNavItems = isGerente
     ? [...commonNavItems, ...gerenteNavItems]
@@ -95,7 +95,7 @@ export function Sidebar() {
         >
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 shrink-0">
             <span className="text-xs font-semibold text-primary">
-              {user.name.charAt(0).toUpperCase()}
+              {user.email.charAt(0).toUpperCase()}
             </span>
           </div>
           <div className="flex flex-col min-w-0">
@@ -103,12 +103,12 @@ export function Sidebar() {
               className="text-xs font-medium truncate"
               style={{ color: "hsl(var(--sidebar-foreground))" }}
             >
-              {user.name}
+              {user.email}
             </span>
             <div className="flex items-center gap-1">
               <Shield className="h-2.5 w-2.5" style={{ color: "hsl(var(--sidebar-muted))" }} />
               <span className="text-xs capitalize" style={{ color: "hsl(var(--sidebar-muted))" }}>
-                {user.role}
+                {user.perfil === "GERENTE" ? "Gerente" : "Atendente"}
               </span>
             </div>
           </div>

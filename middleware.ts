@@ -26,7 +26,8 @@ export function middleware(request: NextRequest) {
   const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
   if (!isProtected) return NextResponse.next();
 
-  const isAuthenticated = request.cookies.get("oficina_auth")?.value === "1";
+  const token = request.cookies.get("oficina_auth")?.value;
+  const isAuthenticated = !!token && token.length > 20;
 
   if (!isAuthenticated) {
     const loginUrl = request.nextUrl.clone();

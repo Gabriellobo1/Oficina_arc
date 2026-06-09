@@ -24,8 +24,9 @@ export const partConsumptionSchema = z.object({
 export type PartConsumptionFormValues = z.infer<typeof partConsumptionSchema>;
 
 export const paymentSchema = z.object({
-  method: z.enum(["credit_card", "debit_card", "pix", "cash"]),
-  installments: z.coerce.number().min(1).max(12),
+  method: z.enum(["DINHEIRO", "CARTAO_CREDITO", "CARTAO_DEBITO", "PIX", "BOLETO"]),
+  installments: z.coerce.number().min(1).max(12).optional(),
+  km_saida: z.coerce.number().int().min(0, "Odômetro de saída inválido"),
 });
 
 export type PaymentFormValues = z.infer<typeof paymentSchema>;

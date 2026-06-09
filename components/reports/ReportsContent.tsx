@@ -1,21 +1,97 @@
 "use client";
 
-import { useDashboard } from "@/hooks/use-dashboard";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { RevenueChart } from "@/components/dashboard/RevenueChart";
 import { TopServicesRanking } from "@/components/dashboard/TopServicesRanking";
 import { StockAlertList } from "@/components/dashboard/StockAlertList";
 import { EmployeeRatingList } from "./EmployeeRatingList";
-import type { Employee } from "@/types/models";
+import { api } from "@/lib/api";
+import { API_ENDPOINTS } from "@/lib/apiEndpoints";
+import { useAuth } from "@/hooks/use-auth";
 
-const MOCK_EMPLOYEES: Employee[] = [
-  { id: "e1", name: "Marcos Mecânico", role: "Mecânico Sênior", averageRating: 4.8 },
-  { id: "e2", name: "João Eletricista", role: "Eletricista Auto", averageRating: 4.5 },
-  { id: "e3", name: "Ana Balconista", role: "Atendimento", averageRating: 4.9 },
-  { id: "e4", name: "Pedro Auxiliar", role: "Auxiliar Mecânico", averageRating: 3.8 },
-];
+interface ReceitaMensalAPI {
+  mes: string;
+  total_os: number;
+  receita_total: number;
+  ticket_medio: number;
+}
+
+interface RankingServicosAPI {
+  nome: string;
+  total_execucoes: number;
+  faturamento_total: number;
+}
+
+interface NotaFuncionarioAPI {
+  nome: string;
+  cargo: string;
+  total_avaliacoes: number;
+  nota_media: number;
+}
+
+interface PecaAlertaAPI {
+  id: string;
+  nome: string;
+  quantidade: number;
+  quantidade_minima: number;
+  deficit: number;
+}
 
 export function ReportsContent() {
-  const { revenueData, servicesRanking, stockAlerts } = useDashboard();
+  const { getToken } = useAuth();
+  const [receitaMensal, setReceitaMensal] = useState<ReceitaMensalAPI[]>([]);
+  const [rankingServicos, setRankingServicos] = useState<RankingServicosAPI[]>([]);
+  const [notasFuncionarios, setNotasFuncionarios] = useState<NotaFuncionarioAPI[]>([]);
+  const [pecasAlerta, setPecasAlerta] = useState<PecaAlertaAPI[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const token = getToken();
+    Promise.all([
+      api.get<ReceitaMensalAPI[]>(API_ENDPOINTS.relatorios.receitaMensal, { token }),
+      api.get<RankingServicosAPI[]>(API_ENDPOINTS.relatorios.rankingServicos, { token }),
+      api.get<NotaFuncionarioAPI[]>(API_ENDPOINTS.relatorios.notaMediaFuncionarios, { token }),
+      api.get<PecaAlertaAPI[]>(API_ENDPOINTS.pecas.abaixoEstoqueMinimo, { token }),
+    ])
+      .then(([receita, ranking, notas, alertas]) => {
+        setReceitaMensal(receita);
+        setRankingServicos(ranking);
+        setNotasFuncionarios(notas);
+        setPecasAlerta(alertas);
+      })
+      .catch(() => toast.error("Erro ao carregar relatórios."))
+      .finally(() => setIsLoading(false));
+  }, [getToken]);
+
+  const revenueData = receitaMensal.map((r) => ({
+    month: r.mes,
+    revenue: Number(r.receita_total),
+    laborRevenue: Number(r.receita_total),
+    partsRevenue: 0,
+  }));
+
+  const servicesRanking = rankingServicos.map((s, i) => ({
+    rank: i + 1,
+    serviceName: s.nome,
+    count: Number(s.total_execucoes),
+    totalRevenue: `R$ ${Number(s.faturamento_total).toFixed(2)}`,
+  }));
+
+  const employeesRating = notasFuncionarios.map((f) => ({
+    id: f.nome,
+    name: f.nome,
+    role: f.cargo,
+    averageRating: Number(f.nota_media),
+  }));
+
+  const stockAlerts = pecasAlerta.map((p) => ({
+    id: p.id,
+    partName: p.nome,
+    currentQty: p.quantidade,
+    minQty: p.quantidade_minima,
+    unit: "un",
+  }));
 
   return (
     <div className="flex flex-col gap-6">
@@ -38,7 +114,7 @@ export function ReportsContent() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <EmployeeRatingList data={MOCK_EMPLOYEES} />
+        <EmployeeRatingList data={employeesRating} />
         <StockAlertList data={stockAlerts} />
       </div>
     </div>

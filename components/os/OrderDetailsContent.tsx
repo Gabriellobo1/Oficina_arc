@@ -5,11 +5,13 @@ import { toast } from "sonner";
 import { Wrench, PackageSearch, Star } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { OrderHeader } from "./OrderHeader";
 import { ServicesTab } from "./tabs/ServicesTab";
 import { PartsTab } from "./tabs/PartsTab";
 import { PaymentCheckoutDialog } from "./PaymentCheckoutDialog";
 import { AvaliacaoDialog } from "./AvaliacaoDialog";
+import { useOrderDetail } from "@/hooks/use-order-detail";
 import { useOrders } from "@/hooks/use-orders";
 import type { PaymentFormValues } from "@/schema/schemaOrder";
 
@@ -18,47 +20,75 @@ interface OrderDetailsContentProps {
 }
 
 export function OrderDetailsContent({ orderId }: OrderDetailsContentProps) {
-  const { getOrderById, updateOrderStatus } = useOrders();
-  const order = getOrderById(orderId);
+  const { order, isLoading, error, registrarPagamento, adicionarItemServico, adicionarItemPeca, refetch } =
+    useOrderDetail(orderId);
+  const { updateOrderStatus } = useOrders();
 
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isAvaliacaoOpen, setIsAvaliacaoOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  if (!order) {
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-6">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-40 w-full rounded-xl" />
+        <Skeleton className="h-64 w-full rounded-xl" />
+      </div>
+    );
+  }
+
+  if (error || !order) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="text-muted-foreground">Ordem de serviço não encontrada.</p>
+        <p className="text-muted-foreground">{error ?? "Ordem de serviço não encontrada."}</p>
       </div>
     );
   }
 
   async function handleConfirmPayment(values: PaymentFormValues) {
-    if (!order) return;
     setIsSubmitting(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      updateOrderStatus(order.id, "Concluída");
-      toast.success("Ordem de serviço finalizada e pagamento registrado!");
+      // 1. Muda status para CONCLUIDO com o km de saída
+      await updateOrderStatus(orderId, "CONCLUIDO", values.km_saida);
+      // 2. Registra o pagamento (backend exige status CONCLUIDO)
+      await registrarPagamento({
+        valor_total: totalOS,
+        forma_pagamento: values.method,
+        parcelas: values.installments ?? 1,
+      });
+      toast.success("OS finalizada e pagamento registrado!");
       setIsPaymentModalOpen(false);
-    } catch {
-      toast.error("Erro ao registrar pagamento.");
+      refetch();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erro ao finalizar OS.";
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  const isConcluido = order.status === "Concluída";
-  const jaAvaliado = !!order.rating;
+  const isConcluido = order.status === "CONCLUIDO";
+  const jaAvaliado = !!order.avaliacao;
+
+  const totalOS =
+    order.itensServico.reduce(
+      (acc, i) => acc + i.quantidade * i.preco_unitario - i.desconto,
+      0
+    ) +
+    order.itensPeca.reduce(
+      (acc, i) => acc + i.quantidade * i.preco_unitario - i.desconto,
+      0
+    );
 
   return (
     <div className="flex flex-col gap-6">
       <OrderHeader
         order={order}
+        total={totalOS}
         onFinishOrder={() => setIsPaymentModalOpen(true)}
       />
 
-      {/* Botão de avaliação — visível apenas para OS Concluídas e sem avaliação prévia */}
       {isConcluido && (
         <div className="glass-card flex items-center justify-between rounded-lg px-4 py-3">
           <div className="flex flex-col gap-0.5">
@@ -70,12 +100,12 @@ export function OrderDetailsContent({ orderId }: OrderDetailsContentProps) {
                 {[1, 2, 3, 4, 5].map((s) => (
                   <Star
                     key={s}
-                    className={`h-4 w-4 ${s <= (order.rating ?? 0) ? "fill-amber-400 text-amber-400" : "fill-transparent text-muted-foreground"}`}
+                    className={`h-4 w-4 ${s <= (order.avaliacao?.nota ?? 0) ? "fill-amber-400 text-amber-400" : "fill-transparent text-muted-foreground"}`}
                   />
                 ))}
-                {order.ratingComment && (
+                {order.avaliacao?.comentario && (
                   <span className="ml-2 text-xs text-muted-foreground truncate max-w-xs">
-                    "{order.ratingComment}"
+                    "{order.avaliacao.comentario}"
                   </span>
                 )}
               </div>
@@ -87,7 +117,6 @@ export function OrderDetailsContent({ orderId }: OrderDetailsContentProps) {
           </div>
           {!jaAvaliado && (
             <Button
-              id="btn-avaliar-os"
               variant="outline"
               size="sm"
               className="shrink-0 gap-2 border-amber-500/50 text-amber-500 hover:bg-amber-500/10"
@@ -113,16 +142,27 @@ export function OrderDetailsContent({ orderId }: OrderDetailsContentProps) {
         </TabsList>
 
         <TabsContent value="services" className="mt-0 outline-none">
-          <ServicesTab order={order} />
+          <ServicesTab
+            orderId={orderId}
+            itensServico={order.itensServico}
+            isClosed={isConcluido || order.status === "CANCELADO"}
+            onAdded={refetch}
+          />
         </TabsContent>
 
         <TabsContent value="parts" className="mt-0 outline-none">
-          <PartsTab order={order} />
+          <PartsTab
+            orderId={orderId}
+            itensPeca={order.itensPeca}
+            isClosed={isConcluido || order.status === "CANCELADO"}
+            onAdded={refetch}
+          />
         </TabsContent>
       </Tabs>
 
       <PaymentCheckoutDialog
         order={order}
+        total={totalOS}
         open={isPaymentModalOpen}
         onOpenChange={setIsPaymentModalOpen}
         onConfirm={handleConfirmPayment}
@@ -133,8 +173,8 @@ export function OrderDetailsContent({ orderId }: OrderDetailsContentProps) {
         orderId={order.id}
         open={isAvaliacaoOpen}
         onOpenChange={setIsAvaliacaoOpen}
-        onSuccess={(nota, comentario) => {
-          // Atualiza localmente o mock; no futuro virá da API
+        onSuccess={() => {
+          refetch();
           toast.success("Obrigado pela avaliação!");
         }}
       />

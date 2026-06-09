@@ -1,8 +1,8 @@
 "use client";
 
-import { useForm, type Resolver } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, CreditCard, Banknote, Landmark, Wallet } from "lucide-react";
+import { Loader2, CreditCard, Banknote, Landmark, Wallet, FileText, Gauge } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -29,10 +29,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { paymentSchema, type PaymentFormValues } from "@/schema/schemaOrder";
 import { formatCurrency } from "@/lib/utils";
-import type { Order } from "@/types/models";
+import type { OrdemDetalheAPI } from "@/hooks/use-order-detail";
 
 interface PaymentCheckoutDialogProps {
-  order: Order;
+  order: OrdemDetalheAPI;
+  total: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: (values: PaymentFormValues) => void;
@@ -41,6 +42,7 @@ interface PaymentCheckoutDialogProps {
 
 export function PaymentCheckoutDialog({
   order,
+  total,
   open,
   onOpenChange,
   onConfirm,
@@ -49,8 +51,9 @@ export function PaymentCheckoutDialog({
   const form = useForm<PaymentFormValues>({
     resolver: zodResolver(paymentSchema) as any,
     defaultValues: {
-      method: "credit_card",
+      method: "DINHEIRO",
       installments: 1,
+      km_saida: order.km_entrada,
     },
   });
 
@@ -58,22 +61,45 @@ export function PaymentCheckoutDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[450px]">
+      <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
           <DialogTitle>Finalizar Ordem de Serviço</DialogTitle>
           <DialogDescription>
-            Confirme os valores e registre a forma de pagamento para concluir a OS <strong className="text-foreground">{order.id}</strong>.
+            Informe o odômetro de saída e a forma de pagamento para concluir a OS{" "}
+            <strong className="text-foreground">{order.id.slice(0, 8).toUpperCase()}</strong>.
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col gap-4 py-4">
           <div className="flex items-center justify-between rounded-lg bg-muted/30 p-4 border border-border">
             <span className="text-sm font-medium text-muted-foreground">Valor Total a Pagar</span>
-            <span className="text-2xl font-bold text-foreground">{formatCurrency(order.total)}</span>
+            <span className="text-2xl font-bold text-foreground">{formatCurrency(total)}</span>
           </div>
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onConfirm)} className="flex flex-col gap-4">
+              <FormField
+                control={form.control}
+                name="km_saida"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      <Gauge className="h-4 w-4" />
+                      Odômetro de Saída (km)
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={order.km_entrada}
+                        placeholder={`Mín. ${order.km_entrada} km`}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <FormField
                 control={form.control}
                 name="method"
@@ -87,28 +113,34 @@ export function PaymentCheckoutDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="credit_card">
+                        <SelectItem value="CARTAO_CREDITO">
                           <div className="flex items-center gap-2">
                             <CreditCard className="h-4 w-4 text-muted-foreground" />
                             Cartão de Crédito
                           </div>
                         </SelectItem>
-                        <SelectItem value="debit_card">
+                        <SelectItem value="CARTAO_DEBITO">
                           <div className="flex items-center gap-2">
                             <Landmark className="h-4 w-4 text-muted-foreground" />
                             Cartão de Débito
                           </div>
                         </SelectItem>
-                        <SelectItem value="pix">
+                        <SelectItem value="PIX">
                           <div className="flex items-center gap-2">
                             <Wallet className="h-4 w-4 text-muted-foreground" />
                             PIX
                           </div>
                         </SelectItem>
-                        <SelectItem value="cash">
+                        <SelectItem value="DINHEIRO">
                           <div className="flex items-center gap-2">
                             <Banknote className="h-4 w-4 text-muted-foreground" />
                             Dinheiro
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="BOLETO">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-muted-foreground" />
+                            Boleto
                           </div>
                         </SelectItem>
                       </SelectContent>
@@ -118,14 +150,17 @@ export function PaymentCheckoutDialog({
                 )}
               />
 
-              {selectedMethod === "credit_card" && (
+              {selectedMethod === "CARTAO_CREDITO" && (
                 <FormField
                   control={form.control}
                   name="installments"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Parcelamento</FormLabel>
-                      <Select onValueChange={(val) => field.onChange(Number(val))} defaultValue={String(field.value)}>
+                      <Select
+                        onValueChange={(val) => field.onChange(Number(val))}
+                        defaultValue={String(field.value ?? 1)}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Selecione as parcelas" />
@@ -134,7 +169,8 @@ export function PaymentCheckoutDialog({
                         <SelectContent>
                           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((num) => (
                             <SelectItem key={num} value={String(num)}>
-                              {num}x de {formatCurrency(order.total / num)} {num === 1 ? "à vista" : "sem juros"}
+                              {num}x de {formatCurrency(total / num)}{" "}
+                              {num === 1 ? "à vista" : "sem juros"}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -154,7 +190,11 @@ export function PaymentCheckoutDialog({
                 >
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={isSubmitting} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                >
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />

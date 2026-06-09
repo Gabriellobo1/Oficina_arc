@@ -2,6 +2,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { vehicleSchema, type VehicleFormValues } from "@/schema/schemaVehicle";
+import { api } from "@/lib/api";
+import { API_ENDPOINTS } from "@/lib/apiEndpoints";
+import { useAuth } from "@/hooks/use-auth";
 
 interface UseVehicleFormProps {
   clientId: string;
@@ -9,6 +12,8 @@ interface UseVehicleFormProps {
 }
 
 export function useVehicleForm({ clientId, onSuccess }: UseVehicleFormProps) {
+  const { getToken } = useAuth();
+
   const form = useForm<VehicleFormValues>({
     resolver: zodResolver(vehicleSchema),
     defaultValues: {
@@ -24,13 +29,25 @@ export function useVehicleForm({ clientId, onSuccess }: UseVehicleFormProps) {
 
   async function onSubmit(values: VehicleFormValues) {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1200));
-      console.info("Vehicle registered for client:", clientId, values);
+      await api.post(
+        API_ENDPOINTS.veiculos.create,
+        {
+          clienteId: clientId,
+          placa: values.plate.toUpperCase(),
+          marca: values.brand,
+          modelo: values.model,
+          ano: values.year,
+          cor: values.color,
+        },
+        { token: getToken() }
+      );
+
       toast.success("Veículo cadastrado com sucesso!");
       form.reset();
       onSuccess?.();
-    } catch {
-      toast.error("Erro ao cadastrar o veículo. Tente novamente.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erro ao cadastrar o veículo.";
+      toast.error(message);
     }
   }
 

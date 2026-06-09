@@ -1,17 +1,15 @@
-export type UserRole = "admin" | "mechanic";
+export type UserRole = "GERENTE" | "ATENDENTE";
 
 export interface AuthUser {
   id: string;
-  name: string;
   email: string;
-  role: UserRole;
-  initials: string;
+  perfil: UserRole;
 }
 
 export interface AuthContextType {
   user: AuthUser | null;
   isAuthenticated: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<AuthUser>;
   signOut: () => void;
   getToken: () => string | null;
 }

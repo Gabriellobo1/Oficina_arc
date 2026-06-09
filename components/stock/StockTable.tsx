@@ -11,11 +11,11 @@ import {
 } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/utils";
 import { cn } from "@/lib/utils";
-import type { Part } from "@/types/models";
+import type { PecaAPI } from "@/hooks/use-stock";
 
 interface StockTableProps {
-  parts: Part[];
-  onEdit: (part: Part) => void;
+  parts: PecaAPI[];
+  onEdit: (part: PecaAPI) => void;
 }
 
 export function StockTable({ parts, onEdit }: StockTableProps) {
@@ -26,7 +26,7 @@ export function StockTable({ parts, onEdit }: StockTableProps) {
           <TableRow className="border-border bg-muted/30">
             <TableHead className="w-[80px]">Status</TableHead>
             <TableHead>Peça</TableHead>
-            <TableHead className="hidden md:table-cell">SKU</TableHead>
+            <TableHead className="hidden md:table-cell">Código</TableHead>
             <TableHead className="hidden lg:table-cell">Fornecedor</TableHead>
             <TableHead className="text-right">Estoque Atual</TableHead>
             <TableHead className="text-right hidden sm:table-cell">Estoque Mín.</TableHead>
@@ -36,8 +36,8 @@ export function StockTable({ parts, onEdit }: StockTableProps) {
         </TableHeader>
         <TableBody>
           {parts.map((part) => {
-            const isCritical = part.currentQty === 0;
-            const isLow = !isCritical && part.currentQty <= part.minQty;
+            const isCritical = part.quantidade === 0;
+            const isLow = !isCritical && part.quantidade <= part.quantidade_minima;
 
             return (
               <TableRow
@@ -73,23 +73,23 @@ export function StockTable({ parts, onEdit }: StockTableProps) {
                     </Badge>
                   )}
                 </TableCell>
-                <TableCell className="font-medium text-foreground">{part.name}</TableCell>
+                <TableCell className="font-medium text-foreground">{part.nome}</TableCell>
                 <TableCell className="text-xs font-mono text-muted-foreground hidden md:table-cell">
-                  {part.sku}
+                  {part.id.slice(0, 8).toUpperCase()}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground hidden lg:table-cell">
-                  {part.supplier ?? "—"}
+                  {part.fornecedor ?? "—"}
                 </TableCell>
                 <TableCell className="text-right font-medium">
                   <span className={isCritical || isLow ? "text-destructive" : "text-foreground"}>
-                    {part.currentQty}
+                    {part.quantidade}
                   </span>
                 </TableCell>
                 <TableCell className="text-right text-muted-foreground hidden sm:table-cell">
-                  {part.minQty}
+                  {part.quantidade_minima}
                 </TableCell>
                 <TableCell className="text-right text-muted-foreground">
-                  {formatCurrency(part.price)}
+                  {formatCurrency(Number(part.preco_unitario))}
                 </TableCell>
                 <TableCell className="text-right">
                   <Button

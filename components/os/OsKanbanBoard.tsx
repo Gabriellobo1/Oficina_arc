@@ -4,18 +4,16 @@ import { useRouter } from "next/navigation";
 import { Plus, Clock, AlertCircle, CheckCircle2, Car, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { formatCurrency } from "@/lib/utils";
-import { useOrders } from "@/hooks/use-orders";
-import type { Order, OrderStatus } from "@/types/models";
+import { useOrders, type OrdemAPI, type StatusBackend } from "@/hooks/use-orders";
 
-const COLUMNS: { id: OrderStatus; label: string; color: string }[] = [
-  { id: "Agendado", label: "Agendados", color: "border-blue-500/30 bg-blue-500/10 text-blue-500" },
-  { id: "Em Andamento", label: "Em Andamento", color: "border-amber-500/30 bg-amber-500/10 text-amber-500" },
-  { id: "Concluído", label: "Concluídas", color: "border-emerald-500/30 bg-emerald-500/10 text-emerald-500" },
-  { id: "Cancelado", label: "Cancelados", color: "border-red-500/30 bg-red-500/10 text-red-500" },
+const COLUMNS: { id: StatusBackend; label: string; color: string }[] = [
+  { id: "AGENDADO", label: "Agendados", color: "border-blue-500/30 bg-blue-500/10 text-blue-500" },
+  { id: "EM_ANDAMENTO", label: "Em Andamento", color: "border-amber-500/30 bg-amber-500/10 text-amber-500" },
+  { id: "CONCLUIDO", label: "Concluídas", color: "border-emerald-500/30 bg-emerald-500/10 text-emerald-500" },
+  { id: "CANCELADO", label: "Cancelados", color: "border-red-500/30 bg-red-500/10 text-red-500" },
 ];
 
-function OrderCard({ order, onClick }: { order: Order; onClick: () => void }) {
+function OrderCard({ order, onClick }: { order: OrdemAPI; onClick: () => void }) {
   return (
     <div
       onClick={onClick}
@@ -23,36 +21,36 @@ function OrderCard({ order, onClick }: { order: Order; onClick: () => void }) {
     >
       <div className="flex items-center justify-between">
         <span className="text-xs font-mono font-medium text-muted-foreground">
-          {order.id}
+          {order.id.slice(0, 8).toUpperCase()}
         </span>
         <span className="text-xs font-semibold text-foreground">
-          {formatCurrency(order.total)}
+          {order._count.itensServico + order._count.itensPeca} item(s)
         </span>
       </div>
 
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-          <User className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="truncate">{order.clientName}</span>
+          <Car className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="truncate">{order.veiculo.modelo}</span>
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Car className="h-3.5 w-3.5" />
-          <span className="truncate">{order.vehicle}</span>
+          <User className="h-3.5 w-3.5" />
+          <span className="truncate font-mono">{order.veiculo.placa}</span>
         </div>
       </div>
 
       <div className="mt-2 flex items-center justify-between border-t border-border/50 pt-3">
         <div className="flex items-center gap-1 text-xs text-muted-foreground">
           <Clock className="h-3 w-3" />
-          <span>{new Date(order.createdAt).toLocaleDateString("pt-BR")}</span>
+          <span>{new Date(order.aberturaEm).toLocaleDateString("pt-BR")}</span>
         </div>
-        {order.status === "Cancelado" && (
+        {order.status === "CANCELADO" && (
           <AlertCircle className="h-4 w-4 text-red-500" />
         )}
-        {order.status === "No-show" && (
+        {order.status === "NO_SHOW" && (
           <AlertCircle className="h-4 w-4 text-orange-400" />
         )}
-        {order.status === "Concluído" && (
+        {order.status === "CONCLUIDO" && (
           <CheckCircle2 className="h-4 w-4 text-emerald-500" />
         )}
       </div>

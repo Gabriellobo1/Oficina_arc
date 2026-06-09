@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 export default function FuncionariosPage() {
   return (
     // Acesso restrito ao perfil Gerente
-    <RouteGuard requiredRole="gerente">
+    <RouteGuard requiredRole="GERENTE">
       <FuncionariosContent />
     </RouteGuard>
   );

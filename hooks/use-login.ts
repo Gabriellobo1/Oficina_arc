@@ -7,10 +7,11 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { loginSchema, type LoginFormValues } from "@/schema/schemaLogin";
 import { useAuth } from "@/hooks/use-auth";
+import type { UserRole } from "@/types/auth";
 
-const ROLE_REDIRECT: Record<string, string> = {
-  admin: "/dashboard",
-  mechanic: "/ordens-de-servico",
+const ROLE_REDIRECT: Record<UserRole, string> = {
+  GERENTE: "/dashboard",
+  ATENDENTE: "/ordens-de-servico",
 };
 
 export function useLogin() {
@@ -34,12 +35,12 @@ export function useLogin() {
 
   async function onSubmit(values: LoginFormValues) {
     try {
-      await signIn(values.email, values.password);
-      const role = values.email.includes("mecanico") ? "mechanic" : "admin";
+      const usuario = await signIn(values.email, values.password);
       toast.success("Login realizado com sucesso!");
-      router.push(ROLE_REDIRECT[role]);
+      router.push(ROLE_REDIRECT[usuario.perfil] ?? "/dashboard");
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Credenciais inválidas. Tente novamente.";
+      const message =
+        err instanceof Error ? err.message : "Credenciais inválidas. Tente novamente.";
       toast.error(message);
     }
   }

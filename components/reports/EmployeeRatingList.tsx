@@ -1,8 +1,14 @@
 import { Star, UserCog } from "lucide-react";
-import type { Employee } from "@/types/models";
+
+interface EmployeeRating {
+  id: string;
+  name: string;
+  role: string;
+  averageRating: number;
+}
 
 interface EmployeeRatingListProps {
-  data: Employee[];
+  data: EmployeeRating[];
 }
 
 export function EmployeeRatingList({ data }: EmployeeRatingListProps) {

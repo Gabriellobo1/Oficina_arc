@@ -1,40 +1,31 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
-import type { AuthContextType, AuthUser, UserRole } from "@/types/auth";
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+  type ReactNode,
+} from "react";
+import type { AuthContextType, AuthUser } from "@/types/auth";
+import { api } from "@/lib/api";
+import { API_ENDPOINTS } from "@/lib/apiEndpoints";
 
-let _token: string | null = null;
+const TOKEN_KEY = "oficina_token";
 
-const MOCK_USERS: Record<string, { password: string; user: AuthUser }> = {
-  "admin@oficina.com": {
-    password: "admin123",
-    user: { id: "u1", name: "Admin Gestor", email: "admin@oficina.com", role: "admin", initials: "AG" },
-  },
-  "mecanico@oficina.com": {
-    password: "mec123",
-    user: { id: "u2", name: "João Mecânico", email: "mecanico@oficina.com", role: "mechanic", initials: "JM" },
-  },
-};
-
-function resolveRole(email: string): UserRole {
-  return email.includes("mecanico") ? "mechanic" : "admin";
+function getStoredToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(TOKEN_KEY);
 }
 
-function buildMockUser(email: string): AuthUser {
-  const known = MOCK_USERS[email];
-  if (known) return known.user;
-
-  const role = resolveRole(email);
-  const name = role === "mechanic" ? "Mecânico" : "Administrador";
-  const initials = name.slice(0, 2).toUpperCase();
-  return { id: "u0", name, email, role, initials };
+function setStoredToken(token: string) {
+  localStorage.setItem(TOKEN_KEY, token);
+  document.cookie = `oficina_auth=${token}; path=/; SameSite=Strict; max-age=604800`;
 }
 
-function setSessionCookie() {
-  document.cookie = "oficina_auth=1; path=/; SameSite=Strict; max-age=86400";
-}
-
-function clearSessionCookie() {
+function clearStoredToken() {
+  localStorage.removeItem(TOKEN_KEY);
   document.cookie = "oficina_auth=; path=/; SameSite=Strict; max-age=0";
 }
 
@@ -42,28 +33,41 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [isReady, setIsReady] = useState(false);
 
-  const signIn = useCallback(async (email: string, password: string) => {
-    await new Promise((resolve) => setTimeout(resolve, 1200));
-
-    const known = MOCK_USERS[email];
-    if (known && known.password !== password) {
-      throw new Error("Credenciais inválidas.");
+  useEffect(() => {
+    const token = getStoredToken();
+    if (!token) {
+      setIsReady(true);
+      return;
     }
 
-    _token = `mock.jwt.${btoa(email)}.${Date.now()}`;
-    const authUser = buildMockUser(email);
-    setUser(authUser);
-    setSessionCookie();
+    api
+      .get<AuthUser>(API_ENDPOINTS.auth.me, { token })
+      .then((userData) => setUser(userData))
+      .catch(() => clearStoredToken())
+      .finally(() => setIsReady(true));
+  }, []);
+
+  const signIn = useCallback(async (email: string, senha: string): Promise<AuthUser> => {
+    const { token, usuario } = await api.post<{ token: string; usuario: AuthUser }>(
+      API_ENDPOINTS.auth.login,
+      { email, senha }
+    );
+
+    setStoredToken(token);
+    setUser(usuario);
+    return usuario;
   }, []);
 
   const signOut = useCallback(() => {
-    _token = null;
+    clearStoredToken();
     setUser(null);
-    clearSessionCookie();
   }, []);
 
-  const getToken = useCallback(() => _token, []);
+  const getToken = useCallback(() => getStoredToken(), []);
+
+  if (!isReady) return null;
 
   return (
     <AuthContext.Provider value={{ user, isAuthenticated: !!user, signIn, signOut, getToken }}>

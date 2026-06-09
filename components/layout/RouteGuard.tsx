@@ -6,12 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 
 interface RouteGuardProps {
   children: React.ReactNode;
-  /**
-   * Perfil mínimo exigido para acessar esta rota.
-   * - undefined → apenas autenticação é necessária
-   * - "gerente"  → somente Gerentes/Admins passam
-   */
-  requiredRole?: string;
+  requiredRole?: "GERENTE" | "ATENDENTE";
 }
 
 export function RouteGuard({ children, requiredRole }: RouteGuardProps) {
@@ -26,9 +21,9 @@ export function RouteGuard({ children, requiredRole }: RouteGuardProps) {
 
     if (requiredRole) {
       const isAllowed =
-        (requiredRole === "gerente" || requiredRole === "admin")
-          ? (user?.role === "gerente" || user?.role === "admin")
-          : (user?.role === requiredRole);
+        requiredRole === "GERENTE"
+          ? user?.perfil === "GERENTE"
+          : user?.perfil === requiredRole;
 
       if (!isAllowed) {
         router.replace("/acesso-negado");
@@ -40,9 +35,9 @@ export function RouteGuard({ children, requiredRole }: RouteGuardProps) {
 
   if (requiredRole) {
     const isAllowed =
-      (requiredRole === "gerente" || requiredRole === "admin")
-        ? (user?.role === "gerente" || user?.role === "admin")
-        : (user?.role === requiredRole);
+      requiredRole === "GERENTE"
+        ? user?.perfil === "GERENTE"
+        : user?.perfil === requiredRole;
 
     if (!isAllowed) return null;
   }
