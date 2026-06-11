@@ -24,6 +24,16 @@ export const API_ENDPOINTS = {
     list: "/api/veiculos",
     create: "/api/veiculos",
     getByPlaca: (placa: string) => `/api/veiculos/${placa}`,
+    update: (id: string) => `/api/veiculos/${id}`,
+    delete: (id: string) => `/api/veiculos/${id}`,
+  },
+
+  pagamentos: {
+    list: "/api/pagamentos",
+  },
+
+  avaliacoes: {
+    list: "/api/avaliacoes",
   },
 
   funcionarios: {

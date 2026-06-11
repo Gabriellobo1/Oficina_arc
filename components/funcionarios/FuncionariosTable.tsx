@@ -78,7 +78,7 @@ export function FuncionariosTable({ funcionarios, onEdit }: FuncionariosTablePro
                 </div>
               </TableCell>
               <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
-                {f.email}
+                {f.email ?? f.usuario?.email ?? "—"}
               </TableCell>
               <TableCell className="hidden lg:table-cell text-sm font-mono">
                 {formatCurrency(f.salario)}

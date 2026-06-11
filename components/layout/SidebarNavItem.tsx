@@ -16,36 +16,21 @@ export function SidebarNavItem({ href, label, icon: Icon, isActive }: SidebarNav
     <Link
       href={href}
       className={cn(
-        "sidebar-transition flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium",
-      )}
-      style={
+        "sidebar-transition group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium",
         isActive
-          ? {
-              background: "hsl(var(--sidebar-accent))",
-              color: "hsl(var(--sidebar-primary))",
-              boxShadow: "inset 2px 0 0 hsl(var(--sidebar-primary))",
-            }
-          : {
-              color: "hsl(var(--sidebar-muted))",
-            }
-      }
-      onMouseEnter={(e) => {
-        if (!isActive) {
-          (e.currentTarget as HTMLAnchorElement).style.background =
-            "hsl(var(--sidebar-accent))";
-          (e.currentTarget as HTMLAnchorElement).style.color =
-            "hsl(var(--sidebar-accent-foreground))";
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!isActive) {
-          (e.currentTarget as HTMLAnchorElement).style.background = "transparent";
-          (e.currentTarget as HTMLAnchorElement).style.color =
-            "hsl(var(--sidebar-muted))";
-        }
-      }}
+          ? "bg-sidebar-primary/15 text-sidebar-primary"
+          : "text-sidebar-muted hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+      )}
     >
-      <Icon className="h-4 w-4 shrink-0" />
+      {isActive && (
+        <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-sidebar-primary" />
+      )}
+      <Icon
+        className={cn(
+          "h-4 w-4 shrink-0 transition-colors",
+          isActive ? "text-sidebar-primary" : "text-sidebar-muted group-hover:text-sidebar-foreground"
+        )}
+      />
       <span className="truncate">{label}</span>
     </Link>
   );

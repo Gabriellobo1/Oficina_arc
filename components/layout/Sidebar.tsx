@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -60,12 +59,9 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="flex h-full w-64 flex-col" style={{ background: "hsl(var(--sidebar))" }}>
-      <div
-        className="flex items-center gap-3 px-6 py-5 border-b"
-        style={{ borderColor: "hsl(var(--sidebar-border))" }}
-      >
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl overflow-hidden ring-1 ring-white/10">
+    <aside className="flex h-full w-64 flex-col bg-sidebar text-sidebar-foreground">
+      <div className="flex items-center gap-3 border-b border-sidebar-border px-6 py-5">
+        <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl ring-1 ring-white/10">
           <Image
             src="/logo.png"
             alt="Oficina Pro"
@@ -75,39 +71,28 @@ export function Sidebar() {
           />
         </div>
         <div className="flex flex-col">
-          <span
-            className="text-sm font-semibold leading-tight tracking-tight"
-            style={{ color: "hsl(var(--sidebar-foreground))" }}
-          >
+          <span className="text-sm font-semibold leading-tight tracking-tight text-sidebar-foreground">
             Oficina Pro
           </span>
-          <span className="text-xs" style={{ color: "hsl(var(--sidebar-muted))" }}>
-            Sistema de Gestão
-          </span>
+          <span className="text-xs text-sidebar-muted">Sistema de Gestão</span>
         </div>
       </div>
 
       {/* Perfil do usuário logado */}
       {user && (
-        <div
-          className="flex items-center gap-3 px-4 py-3 border-b"
-          style={{ borderColor: "hsl(var(--sidebar-border))" }}
-        >
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 shrink-0">
-            <span className="text-xs font-semibold text-primary">
+        <div className="flex items-center gap-3 border-b border-sidebar-border px-4 py-3">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sidebar-primary/20">
+            <span className="text-xs font-semibold text-sidebar-primary">
               {user.email.charAt(0).toUpperCase()}
             </span>
           </div>
-          <div className="flex flex-col min-w-0">
-            <span
-              className="text-xs font-medium truncate"
-              style={{ color: "hsl(var(--sidebar-foreground))" }}
-            >
+          <div className="flex min-w-0 flex-col">
+            <span className="truncate text-xs font-medium text-sidebar-foreground">
               {user.email}
             </span>
             <div className="flex items-center gap-1">
-              <Shield className="h-2.5 w-2.5" style={{ color: "hsl(var(--sidebar-muted))" }} />
-              <span className="text-xs capitalize" style={{ color: "hsl(var(--sidebar-muted))" }}>
+              <Shield className="h-2.5 w-2.5 text-sidebar-muted" />
+              <span className="text-xs capitalize text-sidebar-muted">
                 {user.perfil === "GERENTE" ? "Gerente" : "Atendente"}
               </span>
             </div>
@@ -116,6 +101,9 @@ export function Sidebar() {
       )}
 
       <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-4">
+        <span className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-sidebar-muted/70">
+          Menu
+        </span>
         <div className="flex flex-col gap-0.5">
           {mainNavItems.map((item) => (
             <SidebarNavItem
@@ -131,11 +119,11 @@ export function Sidebar() {
           ))}
         </div>
 
-        <div
-          className="my-3 border-t"
-          style={{ borderColor: "hsl(var(--sidebar-border))" }}
-        />
+        <div className="my-3 border-t border-sidebar-border" />
 
+        <span className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-sidebar-muted/70">
+          Sistema
+        </span>
         <div className="flex flex-col gap-0.5">
           {secondaryNavItems.map((item) => (
             <SidebarNavItem
@@ -149,24 +137,18 @@ export function Sidebar() {
         </div>
       </nav>
 
-      <div
-        className="border-t px-3 py-3 flex flex-col gap-2"
-        style={{ borderColor: "hsl(var(--sidebar-border))" }}
-      >
+      <div className="flex flex-col gap-2 border-t border-sidebar-border px-3 py-3">
         <Button
           id="sidebar-logout-btn"
           variant="ghost"
           size="sm"
-          className="w-full justify-start gap-2 text-xs"
-          style={{ color: "hsl(var(--sidebar-muted))" }}
+          className="w-full justify-start gap-2 text-xs text-sidebar-muted hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
           onClick={handleLogout}
         >
           <LogOut className="h-3.5 w-3.5" />
           Sair
         </Button>
-        <p className="text-xs px-2" style={{ color: "hsl(var(--sidebar-muted))" }}>
-          v1.0.0
-        </p>
+        <p className="px-2 text-xs text-sidebar-muted/70">v1.0.0</p>
       </div>
     </aside>
   );

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Diagrama do Banco — Oficina Pro | Banco de Dados II</title>
+<style>
+  :root{
+    --bg:#0d1117; --card:#1c2330; --line:#2a3342; --txt:#e6edf3; --muted:#9aa7b8;
+    --accent:#ff7a1a; --accent2:#ffb347; --blue:#4493f8; --green:#3fb950; --purple:#bc8cff;
+    --mono:"SF Mono","JetBrains Mono",Consolas,"Roboto Mono",monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    background:radial-gradient(1200px 700px at 80% -10%,rgba(255,122,26,.12),transparent 60%),var(--bg);
+    color:var(--txt);min-height:100vh;overflow-x:hidden}
+  header{padding:18px 28px 6px}
+  .tag{display:inline-block;background:rgba(255,122,26,.14);color:var(--accent2);
+    border:1px solid rgba(255,122,26,.35);border-radius:999px;padding:.2em .9em;
+    font-size:.72rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+  h1{font-size:1.7rem;margin-top:.35em;letter-spacing:-.01em}
+  h1 .accent{color:var(--accent)}
+  .subtitle{color:var(--muted);font-size:.95rem;margin-top:.25em}
+
+  /* legenda */
+  .legend{display:flex;gap:1.3rem;flex-wrap:wrap;margin:.9rem 0 .2rem;font-size:.82rem;color:var(--muted)}
+  .legend .it{display:flex;align-items:center;gap:.45rem}
+  .legend .ln{width:26px;height:0;border-top:3px solid var(--c);border-radius:3px}
+  .legend .kv{font-family:var(--mono);font-size:.78rem}
+
+  /* viewport escalável */
+  .viewport{width:100%;overflow:auto;padding:8px 0 30px}
+  .scaler{transform-origin:top left}
+  .stage{position:relative;width:1640px;height:840px;margin:0 auto}
+
+  svg.wires{position:absolute;inset:0;width:1640px;height:840px;pointer-events:none;z-index:1}
+  svg.wires path{fill:none;stroke-width:2.4;opacity:.85;transition:opacity .15s,stroke-width .15s}
+  .badge{font-family:var(--mono);font-size:11px;font-weight:700}
+
+  /* tabelas */
+  .tbl{position:absolute;z-index:2;width:210px;background:var(--card);border:1px solid var(--line);
+    border-radius:12px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.35);transition:.15s}
+  .tbl:hover{border-color:var(--accent);box-shadow:0 8px 26px rgba(255,122,26,.25);transform:translateY(-2px)}
+  .tbl .h{font-weight:700;font-size:.95rem;padding:.55em .75em;display:flex;align-items:center;gap:.4rem;
+    border-bottom:1px solid var(--line);border-top:3px solid var(--c);background:rgba(255,255,255,.02)}
+  .tbl .h .c{color:var(--c)}
+  .tbl ul{list-style:none;padding:.35em .25em .45em}
+  .tbl li{font-family:var(--mono);font-size:.76rem;color:var(--muted);padding:.16em .55em;
+    display:flex;align-items:center;gap:.35rem;border-radius:5px}
+  .tbl li .ic{width:1.1em;text-align:center;flex:none}
+  .tbl li.pk{color:var(--accent2)}
+  .tbl li.fk{color:var(--blue)}
+  /* destaque do "coração" */
+  .tbl.heart{width:230px;border:2px solid var(--accent);box-shadow:0 0 0 4px rgba(255,122,26,.12),0 8px 26px rgba(0,0,0,.4)}
+  .tbl.heart .h{font-size:1.02rem}
+
+  .tbl.dim{opacity:.28} svg.wires path.dim{opacity:.08}
+
+  footer{text-align:center;color:var(--muted);font-size:.78rem;padding:6px 0 22px}
+  footer b{color:var(--accent2)}
+</style>
+</head>
+<body>
+<header>
+  <span class="tag">Banco de Dados II · Oficina Pro</span>
+  <h1>🗺️ Diagrama do Banco de Dados <span class="accent">— o fluxo das informações</span></h1>
+  <p class="subtitle">11 tabelas conectadas. Passe o mouse sobre uma tabela para destacar suas ligações. 🔑 = chave primária &nbsp;·&nbsp; 🔗 = ligação com outra tabela (chave estrangeira).</p>
+  <div class="legend">
+    <div class="it"><span class="ln" style="--c:var(--accent)"></span> Fluxo principal (carro → atendimento)</div>
+    <div class="it"><span class="ln" style="--c:var(--blue)"></span> Catálogo (serviços e peças usados)</div>
+    <div class="it"><span class="ln" style="--c:var(--purple)"></span> Login do funcionário</div>
+    <div class="it"><span class="ln" style="--c:var(--green)"></span> Encerramento (pagamento e avaliação)</div>
+    <div class="it"><span class="kv">1:N</span> um para muitos &nbsp; <span class="kv">1:1</span> um para um</div>
+  </div>
+</header>
+
+<div class="viewport">
+  <div class="scaler" id="scaler">
+    <div class="stage" id="stage">
+      <svg class="wires" id="wires" viewBox="0 0 1640 840"></svg>
+
+      <!-- ===== TABELAS ===== -->
+      <div class="tbl" id="Cliente" style="--c:var(--blue);left:30px;top:120px">
+        <div class="h">👤 <span>Cliente</span></div>
+        <ul>
+          <li class="pk"><span class="ic">🔑</span>id</li>
+          <li><span class="ic">·</span>nome</li>
+          <li><span class="ic">·</span>tipo (PF / PJ)</li>
+          <li><span class="ic">·</span>cpf · cnpj</li>
+        </ul>
+      </div>
+
+      <div class="tbl" id="Usuario" style="--c:var(--purple);left:30px;top:560px">
+        <div class="h">🔐 <span>Usuario</span></div>
+        <ul>
+          <li class="pk"><span class="ic">🔑</span>id</li>
+          <li><span class="ic">·</span>email</li>
+          <li><span class="ic">·</span>perfil</li>
+        </ul>
+      </div>
+
+      <div class="tbl" id="Veiculo" style="--c:var(--blue);left:340px;top:120px">
+        <div class="h">🚗 <span>Veiculo</span></div>
+        <ul>
+          <li class="pk"><span class="ic">🔑</span>id</li>
+          <li><span class="ic">·</span>placa</li>
+          <li><span class="ic">·</span>marca · modelo</li>
+          <li class="fk"><span class="ic">🔗</span>clienteId</li>
+        </ul>
+      </div>
+
+      <div class="tbl" id="Funcionario" style="--c:var(--purple);left:340px;top:540px">
+        <div class="h">👨‍🔧 <span>Funcionario</span></div>
+        <ul>
+          <li class="pk"><span class="ic">🔑</span>id</li>
+          <li><span class="ic">·</span>nome</li>
+          <li><span class="ic">·</span>cargo</li>
+          <li class="fk"><span class="ic">🔗</span>usuarioId</li>
+        </ul>
+      </div>
+
+      <div class="tbl" id="TipoServico" style="--c:var(--blue);left:690px;top:30px">
+        <div class="h">🛠️ <span>TipoServico</span></div>
+        <ul>
+          <li class="pk"><span class="ic">🔑</span>id</li>
+          <li><span class="ic">·</span>nome</li>
+          <li><span class="ic">·</span>preco_base</li>
+        </ul>
+      </div>
+
+      <div class="tbl heart" id="Agendamento" style="--c:var(--accent);left:680px;top:330px">
+        <div class="h">📋 <span>Agendamento <small style="color:var(--muted);font-weight:400">(a OS)</small></span></div>
+        <ul>
+          <li class="pk"><span class="ic">🔑</span>id</li>
+          <li class="fk"><span class="ic">🔗</span>veiculoId</li>
+          <li><span class="ic">·</span>status</li>
+          <li><span class="ic">·</span>km_entrada</li>
+        </ul>
+      </div>
+
+      <div class="tbl" id="Peca" style="--c:var(--blue);left:690px;top:660px">
+        <div class="h">📦 <span>Peca</span></div>
+        <ul>
+          <li class="pk"><span class="ic">🔑</span>id</li>
+          <li><span class="ic">·</span>nome</li>
+          <li><span class="ic">·</span>quantidade</li>
+          <li><span class="ic">·</span>quantidade_minima</li>
+        </ul>
+      </div>
+
+      <div class="tbl" id="ItemServico" style="--c:var(--accent);left:1050px;top:90px">
+        <div class="h">🔧 <span>ItemServico</span></div>
+        <ul>
+          <li class="pk"><span class="ic">🔑</span>id</li>
+          <li class="fk"><span class="ic">🔗</span>agendamentoId</li>
+          <li class="fk"><span class="ic">🔗</span>tipoServicoId</li>
+          <li class="fk"><span class="ic">🔗</span>funcionarioId</li>
+          <li><span class="ic">·</span>quantidade</li>
+        </ul>
+      </div>
+
+      <div class="tbl" id="ItemPeca" style="--c:var(--accent);left:1050px;top:530px">
+        <div class="h">🧩 <span>ItemPeca</span></div>
+        <ul>
+          <li class="pk"><span class="ic">🔑</span>id</li>
+          <li class="fk"><span class="ic">🔗</span>agendamentoId</li>
+          <li class="fk"><span class="ic">🔗</span>pecaId</li>
+          <li><span class="ic">·</span>quantidade</li>
+        </ul>
+      </div>
+
+      <div class="tbl" id="Pagamento" style="--c:var(--green);left:1400px;top:300px">
+        <div class="h">💳 <span>Pagamento</span></div>
+        <ul>
+          <li class="pk"><span class="ic">🔑</span>id</li>
+          <li class="fk"><span class="ic">🔗</span>agendamentoId</li>
+          <li><span class="ic">·</span>valor_total</li>
+          <li><span class="ic">·</span>forma_pagamento</li>
+        </ul>
+      </div>
+
+      <div class="tbl" id="Avaliacao" style="--c:var(--green);left:1400px;top:560px">
+        <div class="h">⭐ <span>Avaliacao</span></div>
+        <ul>
+          <li class="pk"><span class="ic">🔑</span>id</li>
+          <li class="fk"><span class="ic">🔗</span>agendamentoId</li>
+          <li><span class="ic">·</span>nota</li>
+          <li><span class="ic">·</span>comentario</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<footer>Oficina <b>Pro</b> · Diagrama do banco · Banco de Dados II — Fabricio · Esdras · Mauro · Yvison</footer>
+
+<script>
+  // cor por categoria
+  const C = {accent:'#ff7a1a', blue:'#4493f8', purple:'#bc8cff', green:'#3fb950'};
+
+  // relacionamentos: de (1) -> para (N/1)
+  const RELS = [
+    {from:'Cliente',     to:'Veiculo',     card:'1:N', color:C.accent},
+    {from:'Veiculo',     to:'Agendamento', card:'1:N', color:C.accent},
+    {from:'Usuario',     to:'Funcionario', card:'1:1', color:C.purple},
+    {from:'Agendamento', to:'ItemServico', card:'1:N', color:C.accent},
+    {from:'Agendamento', to:'ItemPeca',    card:'1:N', color:C.accent},
+    {from:'TipoServico', to:'ItemServico', card:'1:N', color:C.blue},
+    {from:'Funcionario', to:'ItemServico', card:'1:N', color:C.blue},
+    {from:'Peca',        to:'ItemPeca',    card:'1:N', color:C.blue},
+    {from:'Agendamento', to:'Pagamento',   card:'1:1', color:C.green},
+    {from:'Agendamento', to:'Avaliacao',   card:'1:1', color:C.green},
+  ];
+
+  const svg = document.getElementById('wires');
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  const box = id => document.getElementById(id);
+  const rectOf = el => ({x:el.offsetLeft, y:el.offsetTop, w:el.offsetWidth, h:el.offsetHeight});
+
+  // marcadores de seta (um por cor)
+  const defs = document.createElementNS(SVGNS,'defs');
+  Object.entries(C).forEach(([k,v])=>{
+    const m = document.createElementNS(SVGNS,'marker');
+    m.setAttribute('id','arr-'+k); m.setAttribute('viewBox','0 0 10 10');
+    m.setAttribute('refX','9'); m.setAttribute('refY','5');
+    m.setAttribute('markerWidth','7'); m.setAttribute('markerHeight','7');
+    m.setAttribute('orient','auto-start-reverse');
+    const p = document.createElementNS(SVGNS,'path');
+    p.setAttribute('d','M0,0 L10,5 L0,10 z'); p.setAttribute('fill',v);
+    m.appendChild(p); defs.appendChild(m);
+  });
+  svg.appendChild(defs);
+
+  function colorKey(hex){return Object.keys(C).find(k=>C[k]===hex)}
+
+  function anchors(a,b){
+    const c1={x:a.x+a.w/2,y:a.y+a.h/2}, c2={x:b.x+b.w/2,y:b.y+b.h/2};
+    const dx=c2.x-c1.x, dy=c2.y-c1.y;
+    let x1,y1,x2,y2,horiz;
+    if(Math.abs(dx)>=Math.abs(dy)){
+      horiz=true; y1=c1.y; y2=c2.y;
+      if(dx>=0){x1=a.x+a.w; x2=b.x;} else {x1=a.x; x2=b.x+b.w;}
+    }else{
+      horiz=false; x1=c1.x; x2=c2.x;
+      if(dy>=0){y1=a.y+a.h; y2=b.y;} else {y1=a.y; y2=b.y+b.h;}
+    }
+    return {x1,y1,x2,y2,horiz};
+  }
+
+  RELS.forEach((r,idx)=>{
+    const A=rectOf(box(r.from)), B=rectOf(box(r.to));
+    const {x1,y1,x2,y2,horiz}=anchors(A,B);
+    let d;
+    if(horiz){const o=Math.max(40,Math.abs(x2-x1)*0.45); d=`M ${x1} ${y1} C ${x1+(x2>x1?o:-o)} ${y1}, ${x2+(x2>x1?-o:o)} ${y2}, ${x2} ${y2}`;}
+    else{const o=Math.max(40,Math.abs(y2-y1)*0.45); d=`M ${x1} ${y1} C ${x1} ${y1+(y2>y1?o:-o)}, ${x2} ${y2+(y2>y1?-o:o)}, ${x2} ${y2}`;}
+
+    const path=document.createElementNS(SVGNS,'path');
+    path.setAttribute('d',d); path.setAttribute('stroke',r.color);
+    path.setAttribute('marker-end',`url(#arr-${colorKey(r.color)})`);
+    path.dataset.from=r.from; path.dataset.to=r.to; path.classList.add('wire');
+    svg.appendChild(path);
+
+    // badge de cardinalidade
+    const mx=(x1+x2)/2, my=(y1+y2)/2;
+    const g=document.createElementNS(SVGNS,'g'); g.classList.add('wire');
+    g.dataset.from=r.from; g.dataset.to=r.to;
+    const bg=document.createElementNS(SVGNS,'rect');
+    bg.setAttribute('x',mx-15); bg.setAttribute('y',my-10); bg.setAttribute('width',30); bg.setAttribute('height',18);
+    bg.setAttribute('rx',5); bg.setAttribute('fill','#0d1117'); bg.setAttribute('stroke',r.color); bg.setAttribute('stroke-width','1.2');
+    const t=document.createElementNS(SVGNS,'text');
+    t.setAttribute('x',mx); t.setAttribute('y',my+3); t.setAttribute('text-anchor','middle');
+    t.setAttribute('fill',r.color); t.setAttribute('class','badge'); t.textContent=r.card;
+    g.appendChild(bg); g.appendChild(t); svg.appendChild(g);
+  });
+
+  // hover: destaca ligações da tabela
+  document.querySelectorAll('.tbl').forEach(tb=>{
+    tb.addEventListener('mouseenter',()=>{
+      const id=tb.id;
+      document.querySelectorAll('.tbl').forEach(t=>{if(t.id!==id)t.classList.add('dim')});
+      const keep=new Set([id]);
+      svg.querySelectorAll('.wire').forEach(w=>{
+        const on=w.dataset.from===id||w.dataset.to===id;
+        if(!on)w.classList.add('dim'); else {keep.add(w.dataset.from);keep.add(w.dataset.to);}
+      });
+      document.querySelectorAll('.tbl').forEach(t=>{if(keep.has(t.id))t.classList.remove('dim')});
+    });
+    tb.addEventListener('mouseleave',()=>{
+      document.querySelectorAll('.tbl').forEach(t=>t.classList.remove('dim'));
+      svg.querySelectorAll('.wire').forEach(w=>w.classList.remove('dim'));
+    });
+  });
+
+  // escala para caber na tela
+  const stageW=1640, stageH=840, scaler=document.getElementById('scaler');
+  function fit(){
+    const availW=window.innerWidth-24;
+    const availH=window.innerHeight-200;
+    const s=Math.min(availW/stageW, availH/stageH, 1.15);
+    scaler.style.transform=`scale(${s})`;
+    scaler.style.height=(stageH*s)+'px';
+    scaler.style.width=(stageW*s)+'px';
+    scaler.style.margin='0 auto';
+  }
+  fit(); window.addEventListener('resize',fit);
+</script>
+</body>
+</html>

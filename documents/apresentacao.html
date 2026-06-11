@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Oficina Pro — Apresentação | Banco de Dados II</title>
+<style>
+  :root{
+    --bg:#0d1117; --bg2:#161b22; --card:#1c2330; --line:#2a3342;
+    --txt:#e6edf3; --muted:#9aa7b8; --accent:#ff7a1a; --accent2:#ffb347;
+    --blue:#4493f8; --green:#3fb950; --purple:#bc8cff; --pink:#f778ba;
+    --mono:"SF Mono", "JetBrains Mono",Consolas,"Roboto Mono",monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--txt); overflow:hidden;
+  }
+  /* ---------- deck ---------- */
+  .slide{
+    position:absolute; inset:0; display:none;
+    flex-direction:column; justify-content:center;
+    padding:5vh 7vw; animation:fade .4s ease;
+    overflow-y:auto;
+  }
+  .slide.active{display:flex}
+  @keyframes fade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+  h1{font-size:clamp(2rem,5vw,3.6rem); line-height:1.05; letter-spacing:-.02em}
+  h2{font-size:clamp(1.5rem,3.4vw,2.4rem); margin-bottom:.5em; letter-spacing:-.01em}
+  p,li{font-size:clamp(.95rem,1.5vw,1.25rem); line-height:1.55; color:var(--txt)}
+  .muted{color:var(--muted)}
+  .accent{color:var(--accent)}
+  .tag{display:inline-block;background:rgba(255,122,26,.14);color:var(--accent2);
+       border:1px solid rgba(255,122,26,.35);border-radius:999px;
+       padding:.25em .9em;font-size:.8rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+  /* explicação fixa em cada slide */
+  .desc{font-size:clamp(1rem,1.7vw,1.35rem);color:var(--txt);max-width:75ch;margin-bottom:1.1rem;line-height:1.5}
+  .note{margin-top:1.2rem;background:rgba(255,122,26,.08);border-left:4px solid var(--accent);
+        border-radius:0 10px 10px 0;padding:.8rem 1.1rem;color:var(--txt);font-size:clamp(.9rem,1.4vw,1.1rem)}
+
+  /* ---------- title slide ---------- */
+  .cover{align-items:flex-start;justify-content:center;
+    background:radial-gradient(1200px 600px at 80% -10%,rgba(255,122,26,.18),transparent 60%),var(--bg)}
+  .cover .logo{font-size:clamp(2.6rem,7vw,5rem);font-weight:800;letter-spacing:-.03em}
+  .cover .sub{font-size:clamp(1.1rem,2.4vw,1.7rem);color:var(--muted);margin-top:.4em;max-width:60ch}
+  .cover .meta{margin-top:2.2em;display:flex;gap:2.5rem;flex-wrap:wrap}
+  .cover .meta b{display:block;color:var(--accent2);font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.3em}
+  .cover .meta span{font-size:1.05rem}
+
+  /* ---------- layout helpers ---------- */
+  .grid{display:grid;gap:1.1rem}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:1.2rem 1.3rem}
+  .card h3{font-size:1.05rem;margin-bottom:.45em;display:flex;align-items:center;gap:.5rem}
+  .card p,.card li{font-size:.95rem;color:var(--muted)}
+  .card.acc{border-left:4px solid var(--accent)}
+  ul.clean{list-style:none}
+  ul.clean li{padding-left:1.5em;position:relative;margin:.4em 0}
+  ul.clean li::before{content:"▸";position:absolute;left:0;color:var(--accent)}
+  .lead{font-size:clamp(1.05rem,1.9vw,1.5rem);max-width:70ch;color:var(--txt)}
+  .kpi{font-size:clamp(2rem,4vw,3rem);font-weight:800;color:var(--accent)}
+  .kpi small{display:block;font-size:.85rem;font-weight:500;color:var(--muted);letter-spacing:.03em;text-transform:uppercase;margin-top:.2em}
+
+  code,pre{font-family:var(--mono)}
+  pre{background:#0a0e14;border:1px solid var(--line);border-radius:12px;padding:1rem 1.2rem;
+      font-size:clamp(.78rem,1.2vw,1rem);line-height:1.55;overflow:auto;color:#c9d4e3}
+  pre .kw{color:var(--pink)} pre .fn{color:var(--blue)} pre .st{color:var(--green)}
+  pre .cm{color:#6b7686} pre .tb{color:var(--accent2)}
+
+  /* ---------- flow ---------- */
+  .flow{display:flex;align-items:stretch;gap:.5rem;flex-wrap:wrap;margin-top:.5rem}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:.85rem 1rem;flex:1;min-width:120px}
+  .step .n{display:inline-flex;width:1.8em;height:1.8em;border-radius:50%;background:var(--accent);color:#1a1209;
+           align-items:center;justify-content:center;font-weight:800;font-size:.9rem;margin-bottom:.5em}
+  .step b{font-size:.95rem;display:block} .step span{font-size:.82rem;color:var(--muted)}
+  .arrow{align-self:center;color:var(--accent);font-size:1.4rem;font-weight:800}
+
+  /* ---------- table groups ---------- */
+  .tgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+  .tcol{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:1rem;border-top:4px solid var(--c)}
+  .tcol h3{font-size:.85rem;text-transform:uppercase;letter-spacing:.06em;color:var(--c);margin-bottom:.7em}
+  .tcol .t{background:#0a0e14;border:1px solid var(--line);border-radius:9px;padding:.55em .7em;margin:.4em 0;font-size:.95rem;font-weight:600}
+  .tcol .t small{display:block;color:var(--muted);font-size:.78rem;font-weight:400;margin-top:.15em;line-height:1.35}
+
+  /* ---------- conexões (linguagem simples) ---------- */
+  .conn{display:flex;flex-direction:column;gap:.7rem;margin-top:.3rem}
+  .conn .row{display:flex;align-items:center;gap:1rem;background:var(--card);border:1px solid var(--line);
+             border-radius:12px;padding:.85rem 1.1rem;font-size:clamp(1rem,1.6vw,1.3rem)}
+  .conn .row .em{font-size:1.6rem}
+  .conn .row b{color:var(--accent2)}
+
+  /* ---------- nav ---------- */
+  .nav{position:fixed;bottom:18px;right:24px;display:flex;align-items:center;gap:14px;z-index:50}
+  .nav button{background:var(--card);border:1px solid var(--line);color:var(--txt);
+    width:42px;height:42px;border-radius:10px;font-size:1.1rem;cursor:pointer;transition:.15s}
+  .nav button:hover{border-color:var(--accent);color:var(--accent)}
+  .counter{font-family:var(--mono);color:var(--muted);font-size:.85rem;min-width:48px;text-align:center}
+  .progress{position:fixed;top:0;left:0;height:3px;background:var(--accent);transition:width .3s;z-index:50}
+  .foot{position:fixed;bottom:18px;left:24px;color:var(--muted);font-size:.78rem;letter-spacing:.03em;z-index:40}
+  .foot b{color:var(--accent2)}
+  .hint{position:fixed;top:14px;right:24px;color:var(--muted);font-size:.72rem;z-index:40}
+</style>
+</head>
+<body>
+
+<div class="progress" id="bar"></div>
+
+<!-- 1 — COVER -->
+<section class="slide cover active">
+  <span class="tag">Banco de Dados II</span>
+  <div class="logo" style="margin-top:.5em">Oficina <span class="accent">Pro</span></div>
+  <p class="sub">Sistema de gestão para oficinas mecânicas — do agendamento à ordem de serviço, pagamento e avaliação, com banco de dados relacional em PostgreSQL.</p>
+  <div class="meta">
+    <div><b>Disciplina</b><span>Banco de Dados II</span></div>
+    <div><b>Equipe</b><span>Fabricio · Esdras · Mauro · Yvison</span></div>
+    <div><b>SGBD</b><span>PostgreSQL · SQL puro</span></div>
+  </div>
+</section>
+
+<!-- 2 — O QUE É -->
+<section class="slide">
+  <span class="tag">Visão geral</span>
+  <h2>🔧 O que é o projeto?</h2>
+  <p class="lead">Um sistema web completo que organiza a rotina de uma <b class="accent">oficina mecânica</b>: cadastra clientes e seus veículos, abre ordens de serviço, registra os serviços feitos e as peças usadas, controla o estoque, recebe o pagamento e coleta a avaliação do cliente.</p>
+  <div class="grid g3" style="margin-top:1.6rem">
+    <div class="card acc"><h3>👥 Quem usa</h3><p>Atendentes e gerentes da oficina, cada um com seu nível de acesso.</p></div>
+    <div class="card acc"><h3>🎯 Para quê</h3><p>Trocar o controle em papel/planilha por um sistema confiável e organizado.</p></div>
+    <div class="card acc"><h3>📊 O que entrega</h3><p>Histórico do veículo, faturamento e desempenho da oficina num clique.</p></div>
+  </div>
+</section>
+
+<!-- 3 — OBJETIVO -->
+<section class="slide">
+  <span class="tag">Objetivo</span>
+  <h2>🎯 Objetivo do projeto</h2>
+  <p class="desc">Colocar em prática o conteúdo de <b class="accent">Banco de Dados II</b>, construindo um sistema real apoiado num banco de dados bem organizado.</p>
+  <div class="grid g2">
+    <ul class="clean">
+      <li>Modelar uma situação real (uma oficina) em tabelas</li>
+      <li>Escrever o banco e as consultas <b>na mão</b>, em SQL</li>
+      <li>Conectar as tabelas de forma correta e organizada</li>
+    </ul>
+    <ul class="clean">
+      <li>Manter os dados <b>confiáveis</b> e sem informação perdida</li>
+      <li>Deixar o sistema <b>rápido</b> mesmo com muitos dados</li>
+      <li>Tirar relatórios úteis a partir das informações guardadas</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 4 — ESTRUTURA / STACK -->
+<section class="slide">
+  <span class="tag">Arquitetura &amp; Stack</span>
+  <h2>🏗️ Como o sistema foi montado</h2>
+  <p class="desc">O projeto tem três partes que conversam entre si: a <b>tela</b> que o usuário vê, o <b>servidor</b> que processa, e o <b>banco</b> que guarda tudo.</p>
+  <div class="flow">
+    <div class="step"><span class="n">1</span><b>Frontend (tela)</b><span>Next.js + React</span></div>
+    <div class="arrow">→</div>
+    <div class="step"><span class="n">2</span><b>Backend (servidor)</b><span>Fastify — a API</span></div>
+    <div class="arrow">→</div>
+    <div class="step"><span class="n">3</span><b>Banco de Dados</b><span>PostgreSQL</span></div>
+  </div>
+  <div class="grid g4" style="margin-top:1.6rem">
+    <div class="card"><div class="kpi">11<small>Tabelas</small></div></div>
+    <div class="card"><div class="kpi">3<small>Camadas</small></div></div>
+    <div class="card"><div class="kpi">8<small>Telas</small></div></div>
+    <div class="card"><div class="kpi">100%<small>SQL na mão</small></div></div>
+  </div>
+</section>
+
+<!-- 5 — FLUXO DE NEGOCIO -->
+<section class="slide">
+  <span class="tag">Fluxo de negócio</span>
+  <h2>🔄 Como funciona na prática</h2>
+  <p class="desc">É o caminho de um carro dentro da oficina. Cada etapa abaixo guarda uma informação no banco.</p>
+  <div class="flow">
+    <div class="step"><span class="n">1</span><b>Cadastro</b><span>Cliente + veículo</span></div>
+    <div class="arrow">→</div>
+    <div class="step"><span class="n">2</span><b>Abertura da OS</b><span>Registra a entrada</span></div>
+    <div class="arrow">→</div>
+    <div class="step"><span class="n">3</span><b>Serviços + peças</b><span>O que foi feito</span></div>
+  </div>
+  <div class="flow" style="margin-top:.6rem">
+    <div class="step"><span class="n">4</span><b>Estoque</b><span>Peça sai do estoque</span></div>
+    <div class="arrow">→</div>
+    <div class="step"><span class="n">5</span><b>Pagamento</b><span>Cliente paga</span></div>
+    <div class="arrow">→</div>
+    <div class="step"><span class="n">6</span><b>Avaliação</b><span>Nota do cliente</span></div>
+  </div>
+  <div class="note">A <b class="accent">Ordem de Serviço (OS)</b> é o centro de tudo: ela liga o carro aos serviços, às peças, ao pagamento e à avaliação.</div>
+</section>
+
+<!-- 6 — FRONTEND (resumido) -->
+<section class="slide">
+  <span class="tag">Frontend · resumido</span>
+  <h2>🖥️ O que tem na tela</h2>
+  <p class="desc">A parte visual do sistema, onde o atendente e o gerente trabalham no dia a dia. Feita em <b>Next.js + React</b>, com login protegido por senha.</p>
+  <div class="grid g4" style="gap:.7rem">
+    <div class="card" style="padding:.8rem 1rem"><b>📊 Dashboard</b><br><small class="muted">resumo do dia</small></div>
+    <div class="card" style="padding:.8rem 1rem"><b>👤 Clientes</b><br><small class="muted">pessoa física/jurídica</small></div>
+    <div class="card" style="padding:.8rem 1rem"><b>🚗 Veículos</b><br><small class="muted">carros por cliente</small></div>
+    <div class="card" style="padding:.8rem 1rem"><b>📋 Ordens de Serviço</b><br><small class="muted">quadro por status</small></div>
+    <div class="card" style="padding:.8rem 1rem"><b>📦 Peças</b><br><small class="muted">estoque e alertas</small></div>
+    <div class="card" style="padding:.8rem 1rem"><b>👨‍🔧 Funcionários</b><br><small class="muted">só o gerente</small></div>
+    <div class="card" style="padding:.8rem 1rem"><b>📈 Relatórios</b><br><small class="muted">só o gerente</small></div>
+    <div class="card" style="padding:.8rem 1rem"><b>🔐 Login</b><br><small class="muted">acesso por perfil</small></div>
+  </div>
+</section>
+
+<!-- 7 — BACKEND (resumido) -->
+<section class="slide">
+  <span class="tag">Backend · resumido</span>
+  <h2>⚙️ O servidor que conversa com o banco</h2>
+  <p class="desc">É a "ponte" entre a tela e o banco: recebe os pedidos do usuário, confere se está tudo certo e busca ou grava os dados no banco.</p>
+  <div class="grid g2">
+    <ul class="clean">
+      <li>Feito em <b>Fastify</b> (Node.js)</li>
+      <li>Toda comunicação com o banco é em <b class="accent">SQL escrito à mão</b></li>
+      <li>Login seguro com senha criptografada</li>
+      <li>Confere os dados antes de salvar (evita erro)</li>
+    </ul>
+    <div class="card">
+      <h3 style="color:var(--accent2)">O caminho de um pedido</h3>
+      <p style="font-size:1.1rem;line-height:2;margin-top:.3rem">
+        Usuário clica na tela <span class="accent">→</span><br>
+        servidor recebe e confere <span class="accent">→</span><br>
+        busca/grava no banco <span class="accent">→</span><br>
+        devolve a resposta pra tela
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- 8 — BANCO: DIVISOR -->
+<section class="slide" style="justify-content:center;align-items:flex-start;background:radial-gradient(900px 500px at 20% 110%,rgba(255,122,26,.16),transparent 60%),var(--bg)">
+  <span class="tag">A parte mais importante</span>
+  <h1 style="margin-top:.3em">🗄️ Banco de Dados</h1>
+  <p class="lead" style="margin-top:.6em">É onde <b class="accent">todas as informações</b> da oficina ficam guardadas, de forma organizada e segura.</p>
+  <p class="muted" style="margin-top:1em">Nos próximos slides: o que o banco guarda · como as informações se conectam · o coração do sistema · como mantemos tudo confiável · o que conseguimos descobrir.</p>
+</section>
+
+<!-- 9 — BANCO: O QUE GUARDA -->
+<section class="slide">
+  <span class="tag">O que o banco guarda</span>
+  <h2>📂 As informações, em grupos</h2>
+  <p class="desc">Tudo é guardado em <b>tabelas</b> (como abas de uma planilha). São 11 no total, organizadas por assunto:</p>
+  <div class="tgrid" style="margin-top:.2rem">
+    <div class="tcol" style="--c:var(--blue)">
+      <h3>Cadastros</h3>
+      <div class="t">Cliente<small>quem traz o carro</small></div>
+      <div class="t">Veículo<small>o carro em si</small></div>
+      <div class="t">Funcionário<small>quem trabalha</small></div>
+      <div class="t">Usuário<small>login do sistema</small></div>
+    </div>
+    <div class="tcol" style="--c:var(--purple)">
+      <h3>Catálogo</h3>
+      <div class="t">Tipo de Serviço<small>o que a oficina faz</small></div>
+      <div class="t">Peça<small>o que tem no estoque</small></div>
+    </div>
+    <div class="tcol" style="--c:var(--accent)">
+      <h3>O atendimento</h3>
+      <div class="t">Ordem de Serviço<small>a visita do carro</small></div>
+      <div class="t">Serviços da OS<small>o que foi feito</small></div>
+      <div class="t">Peças da OS<small>o que foi trocado</small></div>
+    </div>
+    <div class="tcol" style="--c:var(--green)">
+      <h3>No final</h3>
+      <div class="t">Pagamento<small>quanto e como pagou</small></div>
+      <div class="t">Avaliação<small>a nota do cliente</small></div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 — BANCO: CONEXOES (linguagem simples) -->
+<section class="slide">
+  <span class="tag">Como tudo se conecta</span>
+  <h2>🔗 As tabelas conversam entre si</h2>
+  <p class="desc">O segredo de um banco relacional é ligar as informações. Em palavras simples:</p>
+  <div class="conn">
+    <div class="row"><span class="em">👤➜🚗</span><div>Um <b>cliente</b> pode ter <b>vários carros</b></div></div>
+    <div class="row"><span class="em">🚗➜📋</span><div>Um <b>carro</b> pode passar por <b>várias visitas</b> à oficina</div></div>
+    <div class="row"><span class="em">📋➜🔧</span><div>Cada <b>visita (OS)</b> tem os <b>serviços feitos</b> e as <b>peças trocadas</b></div></div>
+    <div class="row"><span class="em">📋➜💳</span><div>No fim, cada <b>visita</b> tem <b>um pagamento</b> e <b>uma avaliação</b></div></div>
+  </div>
+  <div class="note">Assim ninguém precisa digitar o mesmo dado duas vezes — o cliente é cadastrado uma vez e fica ligado a todos os carros e visitas dele.</div>
+</section>
+
+<!-- 11 — BANCO: O CORACAO -->
+<section class="slide">
+  <span class="tag">O coração do sistema</span>
+  <h2>⭐ A Ordem de Serviço no centro</h2>
+  <p class="desc">A <b class="accent">Ordem de Serviço</b> é a tabela mais importante: ela amarra todas as outras. É ali que tudo de uma visita se junta.</p>
+  <div class="grid g3" style="align-items:center;gap:.8rem;margin-top:.4rem">
+    <div style="display:flex;flex-direction:column;gap:.6rem">
+      <div class="card" style="text-align:center">🚗<br><b>Carro</b></div>
+      <div class="card" style="text-align:center">🔧<br><b>Serviços</b></div>
+    </div>
+    <div class="card acc" style="text-align:center;padding:1.6rem">
+      <div style="font-size:2.2rem">📋</div>
+      <b class="accent" style="font-size:1.2rem">Ordem de Serviço</b>
+      <p style="color:var(--txt);margin-top:.4rem">liga tudo</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.6rem">
+      <div class="card" style="text-align:center">📦<br><b>Peças</b></div>
+      <div class="card" style="text-align:center">💳<br><b>Pagamento</b></div>
+    </div>
+  </div>
+  <div class="note">Olhando só uma Ordem de Serviço, a oficina vê o carro, tudo que foi feito, as peças usadas, o valor pago e a nota do cliente.</div>
+</section>
+
+<!-- 12 — BANCO: CONFIABILIDADE -->
+<section class="slide">
+  <span class="tag">Dados confiáveis</span>
+  <h2>🔒 Como garantimos que nada se perde</h2>
+  <p class="desc">O banco tem regras automáticas para os dados ficarem sempre certos, sem depender da memória de ninguém:</p>
+  <div class="grid g2">
+    <div class="card acc"><h3>🆔 Sem duplicar</h3><p style="color:var(--txt)">Cada cliente, carro ou serviço tem um código único. Não existem dois iguais nem e-mail/placa repetidos.</p></div>
+    <div class="card acc"><h3>🛡️ Histórico protegido</h3><p style="color:var(--txt)">Não dá para apagar um cliente que ainda tem carros ou serviços ligados a ele. O histórico fica preservado.</p></div>
+    <div class="card acc"><h3>💰 Valores exatos</h3><p style="color:var(--txt)">Preços e pagamentos são guardados com precisão, sem erro de centavo no troco.</p></div>
+    <div class="card acc"><h3>📦 Estoque automático</h3><p style="color:var(--txt)">Quando uma peça é usada numa OS, ela sai do estoque sozinha — sem ajuste manual.</p></div>
+  </div>
+</section>
+
+<!-- 13 — BANCO: PARA QUE SERVE -->
+<section class="slide">
+  <span class="tag">O resultado</span>
+  <h2>📊 O que o banco consegue responder</h2>
+  <p class="desc">Como tudo está organizado e conectado, o sistema responde perguntas do gerente na hora:</p>
+  <div class="grid g2">
+    <div class="card"><h3>💵 Quanto faturamos no mês?</h3><p style="color:var(--txt)">Soma todos os pagamentos do período.</p></div>
+    <div class="card"><h3>🏆 Quais serviços mais saem?</h3><p style="color:var(--txt)">Ranking dos serviços mais pedidos.</p></div>
+    <div class="card"><h3>⭐ Quem são os melhores funcionários?</h3><p style="color:var(--txt)">Nota média e atendimentos de cada um.</p></div>
+    <div class="card"><h3>⚠️ Quais peças estão acabando?</h3><p style="color:var(--txt)">Avisa quando o estoque fica baixo.</p></div>
+  </div>
+  <div class="note">É isso que diferencia um banco de dados de uma planilha: ele não só guarda — ele <b>responde perguntas</b> e ajuda a decidir.</div>
+</section>
+
+<!-- 14 — FECHAMENTO -->
+<section class="slide" style="justify-content:center;background:radial-gradient(1000px 600px at 80% 110%,rgba(255,122,26,.16),transparent 60%),var(--bg)">
+  <span class="tag">Conclusão</span>
+  <h2 style="margin-top:.3em">✅ O que entregamos</h2>
+  <div class="grid g3" style="margin:.6rem 0 1.4rem">
+    <div class="card acc"><h3>Banco bem organizado</h3><p style="color:var(--txt)">11 tabelas conectadas, sem dado repetido e com histórico protegido.</p></div>
+    <div class="card acc"><h3>Tudo em SQL</h3><p style="color:var(--txt)">O banco e as consultas foram escritos à mão, aplicando a matéria.</p></div>
+    <div class="card acc"><h3>Sistema funcionando</h3><p style="color:var(--txt)">Tela + servidor + banco juntos, do cadastro até a avaliação.</p></div>
+  </div>
+  <h1 style="font-size:clamp(1.8rem,4vw,2.8rem)">Obrigado! <span class="accent">Perguntas?</span></h1>
+  <p class="muted" style="margin-top:.6em">Banco de Dados II · Fabricio · Esdras · Mauro · Yvison</p>
+</section>
+
+<!-- UI -->
+<div class="hint">← → para navegar</div>
+<div class="foot">Oficina <b>Pro</b> · Banco de Dados II</div>
+<div class="nav">
+  <button onclick="go(-1)">‹</button>
+  <span class="counter"><span id="cur">1</span>/<span id="tot">14</span></span>
+  <button onclick="go(1)">›</button>
+</div>
+
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  let i=0; const tot=slides.length;
+  document.getElementById('tot').textContent=tot;
+  function show(n){
+    i=Math.max(0,Math.min(tot-1,n));
+    slides.forEach((s,k)=>s.classList.toggle('active',k===i));
+    document.getElementById('cur').textContent=i+1;
+    document.getElementById('bar').style.width=((i+1)/tot*100)+'%';
+  }
+  function go(d){show(i+d)}
+  show(0);
+  document.addEventListener('keydown',e=>{
+    if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();go(1)}
+    if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();go(-1)}
+    if(e.key==='Home')show(0); if(e.key==='End')show(tot-1);
+  });
+  // swipe (touch)
+  let x0=null;
+  addEventListener('touchstart',e=>x0=e.touches[0].clientX);
+  addEventListener('touchend',e=>{if(x0===null)return;const dx=e.changedTouches[0].clientX-x0;if(Math.abs(dx)>50)go(dx<0?1:-1);x0=null});
+</script>
+</body>
+</html>

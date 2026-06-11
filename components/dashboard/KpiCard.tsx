@@ -12,12 +12,23 @@ const iconMap: Record<string, LucideIcon> = {
   Star,
 };
 
+const colorMap: Record<string, string> = {
+  Users: "text-blue-500 bg-blue-500/10 ring-blue-500/20",
+  Wrench: "text-indigo-500 bg-indigo-500/10 ring-indigo-500/20",
+  TrendingUp: "text-emerald-500 bg-emerald-500/10 ring-emerald-500/20",
+  DollarSign: "text-emerald-500 bg-emerald-500/10 ring-emerald-500/20",
+  Receipt: "text-violet-500 bg-violet-500/10 ring-violet-500/20",
+  Star: "text-amber-500 bg-amber-500/10 ring-amber-500/20",
+  Package: "text-orange-500 bg-orange-500/10 ring-orange-500/20",
+};
+
 interface KpiCardProps {
   data: KpiData;
 }
 
 export function KpiCard({ data }: KpiCardProps) {
   const Icon = iconMap[data.icon] ?? TrendingUp;
+  const colorClasses = colorMap[data.icon] ?? colorMap.TrendingUp;
 
   const ChangeIcon =
     data.changeType === "positive"
@@ -37,8 +48,8 @@ export function KpiCard({ data }: KpiCardProps) {
             {data.value}
           </p>
         </div>
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10 ring-1 ring-blue-500/20">
-          <Icon className="h-5 w-5 text-blue-500" />
+        <div className={cn("flex h-10 w-10 items-center justify-center rounded-lg ring-1", colorClasses)}>
+          <Icon className="h-5 w-5" />
         </div>
       </div>
 

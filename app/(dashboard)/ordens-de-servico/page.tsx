@@ -1,10 +1,18 @@
 import type { Metadata } from "next";
-import { OsKanbanBoard } from "@/components/os/OsKanbanBoard";
+import { Header } from "@/components/layout/Header";
+import { OsList } from "@/components/os/OsList";
 
 export const metadata: Metadata = {
   title: "Ordens de Serviço",
 };
 
 export default function OrdersPage() {
-  return <OsKanbanBoard />;
+  return (
+    <>
+      <Header title="Ordens de Serviço" subtitle="Acompanhe o fluxo de veículos na oficina" />
+      <div className="p-6">
+        <OsList />
+      </div>
+    </>
+  );
 }

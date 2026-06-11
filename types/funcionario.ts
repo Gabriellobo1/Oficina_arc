@@ -9,13 +9,15 @@ export type CargoFuncionario =
 export interface Funcionario {
   id: string;
   nome: string;
-  cargo: CargoFuncionario;
+  cargo: CargoFuncionario | string;
   especialidade?: string;
-  email: string;
-  telefone: string;
+  email?: string;
+  telefone?: string;
   salario: number;
-  dataAdmissao: string;
+  dataAdmissao?: string;
   ativo: boolean;
   notaMedia?: number;
   totalOs?: number;
+  criadoEm?: string;
+  usuario?: { email: string; perfil: string };
 }

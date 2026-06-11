@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Search, Plus, User, Building2, Eye } from "lucide-react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -22,28 +22,14 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { useClientsTable } from "@/hooks/use-clients-table";
-import type { Client } from "@/types/client";
+import { useClientsTable, type ClienteAPI } from "@/hooks/use-clients-table";
 
-function ClientDisplayName({ client }: { client: Client }) {
-  if (client.type === "pf") {
-    return <span className="font-medium">{client.name}</span>;
-  }
-  return (
-    <div className="flex flex-col">
-      <span className="font-medium">{client.tradeName}</span>
-      <span className="text-xs text-muted-foreground">{client.companyName}</span>
-    </div>
-  );
-}
-
-function ClientDocument({ client }: { client: Client }) {
-  if (client.type === "pf") return <span>{client.cpf}</span>;
-  return <span>{client.cnpj}</span>;
+function ClientDocument({ client }: { client: ClienteAPI }) {
+  return <span>{client.tipo === "PF" ? client.cpf ?? "—" : client.cnpj ?? "—"}</span>;
 }
 
 export function ClientsTable() {
-  const { clients, searchTerm, setSearchTerm, typeFilter, setTypeFilter, isLoading } =
+  const { clientes, meta, searchTerm, setSearchTerm, typeFilter, setTypeFilter, isLoading } =
     useClientsTable();
 
   return (
@@ -54,7 +40,7 @@ export function ClientsTable() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="clients-search"
-              placeholder="Buscar por nome, CPF ou CNPJ..."
+              placeholder="Buscar por nome..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9"
@@ -63,17 +49,15 @@ export function ClientsTable() {
 
           <Select
             value={typeFilter}
-            onValueChange={(val) =>
-              setTypeFilter(val as "all" | "pf" | "pj")
-            }
+            onValueChange={(val) => setTypeFilter(val as "all" | "PF" | "PJ")}
           >
             <SelectTrigger id="clients-type-filter" className="w-[160px]">
               <SelectValue placeholder="Tipo" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="pf">Pessoa Física</SelectItem>
-              <SelectItem value="pj">Pessoa Jurídica</SelectItem>
+              <SelectItem value="PF">Pessoa Física</SelectItem>
+              <SelectItem value="PJ">Pessoa Jurídica</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -96,7 +80,7 @@ export function ClientsTable() {
               <TableHead>Tipo</TableHead>
               <TableHead>CPF / CNPJ</TableHead>
               <TableHead>Contato</TableHead>
-              <TableHead>Cidade / UF</TableHead>
+              <TableHead>Endereço</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -111,7 +95,7 @@ export function ClientsTable() {
                   ))}
                 </TableRow>
               ))
-            ) : clients.length === 0 ? (
+            ) : clientes.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={6}
@@ -121,22 +105,22 @@ export function ClientsTable() {
                 </TableCell>
               </TableRow>
             ) : (
-              clients.map((client) => (
+              clientes.map((client) => (
                 <TableRow key={client.id} className="group">
                   <TableCell>
-                    <ClientDisplayName client={client} />
+                    <span className="font-medium">{client.nome}</span>
                   </TableCell>
                   <TableCell>
                     <Badge
-                      variant={client.type === "pf" ? "default" : "secondary"}
+                      variant={client.tipo === "PF" ? "default" : "secondary"}
                       className="gap-1"
                     >
-                      {client.type === "pf" ? (
+                      {client.tipo === "PF" ? (
                         <User className="h-3 w-3" />
                       ) : (
                         <Building2 className="h-3 w-3" />
                       )}
-                      {client.type === "pf" ? "PF" : "PJ"}
+                      {client.tipo}
                     </Badge>
                   </TableCell>
                   <TableCell className="font-mono text-sm">
@@ -146,12 +130,12 @@ export function ClientsTable() {
                     <div className="flex flex-col">
                       <span className="text-sm">{client.email}</span>
                       <span className="text-xs text-muted-foreground">
-                        {client.phone}
+                        {client.telefone ?? "—"}
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell>
-                    {client.address.city} / {client.address.state}
+                  <TableCell className="text-sm text-muted-foreground">
+                    {client.endereco ?? "—"}
                   </TableCell>
                   <TableCell className="text-right">
                     <Link
@@ -171,8 +155,8 @@ export function ClientsTable() {
       </div>
 
       <p className="text-xs text-muted-foreground">
-        {clients.length} cliente{clients.length !== 1 ? "s" : ""} encontrado
-        {clients.length !== 1 ? "s" : ""}.
+        {meta.total} cliente{meta.total !== 1 ? "s" : ""} encontrado
+        {meta.total !== 1 ? "s" : ""}.
       </p>
     </div>
   );

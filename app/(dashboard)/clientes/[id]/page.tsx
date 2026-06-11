@@ -1,19 +1,19 @@
 "use client";
 
+import { use } from "react";
 import Link from "next/link";
-import { ChevronLeft, User, Building2, Mail, Phone, MapPin } from "lucide-react";
+import { ChevronLeft, User, Building2, Mail, Phone, MapPin, Car, Hash } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Header } from "@/components/layout/Header";
-import { VehicleList } from "@/components/veiculos/VehicleList";
 import { useClientDetail } from "@/hooks/use-client-detail";
 import { cn } from "@/lib/utils";
 
 interface ClientDetailPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 function ClientDetailSkeleton() {
@@ -35,16 +35,16 @@ function ClientDetailSkeleton() {
 }
 
 export default function ClientDetailPage({ params }: ClientDetailPageProps) {
-  const { client, isLoading } = useClientDetail(params.id);
+  const { id } = use(params);
+  const { client, isLoading } = useClientDetail(id);
 
-  const displayName =
-    client?.type === "pf" ? client.name : client?.tradeName ?? client?.companyName;
+  const isPF = client?.tipo === "PF";
 
   return (
     <>
       <Header
-        title={displayName ?? "Detalhe do Cliente"}
-        subtitle={client?.type === "pf" ? "Pessoa Física" : "Pessoa Jurídica"}
+        title={client?.nome ?? "Detalhe do Cliente"}
+        subtitle={client ? (isPF ? "Pessoa Física" : "Pessoa Jurídica") : undefined}
       />
       <div className="p-6">
         <div className="mb-4">
@@ -75,60 +75,35 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                    {client.type === "pf" ? (
+                    {isPF ? (
                       <User className="h-4 w-4 text-muted-foreground" />
                     ) : (
                       <Building2 className="h-4 w-4 text-muted-foreground" />
                     )}
                     Dados Cadastrais
                   </CardTitle>
-                  <Badge variant={client.type === "pf" ? "default" : "secondary"}>
-                    {client.type === "pf" ? "Pessoa Física" : "Pessoa Jurídica"}
+                  <Badge variant={isPF ? "default" : "secondary"}>
+                    {isPF ? "Pessoa Física" : "Pessoa Jurídica"}
                   </Badge>
                 </div>
               </CardHeader>
 
               <CardContent>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  {client.type === "pf" ? (
-                    <>
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Nome</span>
-                        <span className="text-sm font-medium">{client.name}</span>
-                      </div>
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">CPF</span>
-                        <span className="font-mono text-sm">{client.cpf}</span>
-                      </div>
-                      {client.rg && (
-                        <div className="flex flex-col gap-0.5">
-                          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">RG</span>
-                          <span className="font-mono text-sm">{client.rg}</span>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex flex-col gap-0.5 md:col-span-2">
-                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Razão Social</span>
-                        <span className="text-sm font-medium">{client.companyName}</span>
-                      </div>
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Nome Fantasia</span>
-                        <span className="text-sm">{client.tradeName}</span>
-                      </div>
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">CNPJ</span>
-                        <span className="font-mono text-sm">{client.cnpj}</span>
-                      </div>
-                      {client.stateRegistration && (
-                        <div className="flex flex-col gap-0.5">
-                          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Inscrição Estadual</span>
-                          <span className="text-sm">{client.stateRegistration}</span>
-                        </div>
-                      )}
-                    </>
-                  )}
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Nome
+                    </span>
+                    <span className="text-sm font-medium">{client.nome}</span>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      {isPF ? "CPF" : "CNPJ"}
+                    </span>
+                    <span className="font-mono text-sm">
+                      {(isPF ? client.cpf : client.cnpj) ?? "—"}
+                    </span>
+                  </div>
 
                   <Separator className="md:col-span-2" />
 
@@ -138,26 +113,62 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
                   </div>
                   <div className="flex items-center gap-2">
                     <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{client.phone}</span>
+                    <span className="text-sm">{client.telefone ?? "—"}</span>
                   </div>
 
                   <Separator className="md:col-span-2" />
 
                   <div className="flex items-start gap-2 md:col-span-2">
                     <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                    <span className="text-sm">
-                      {client.address.street}, {client.address.number}
-                      {client.address.complement && `, ${client.address.complement}`}
-                      {" — "}
-                      {client.address.neighborhood}, {client.address.city} / {client.address.state}
-                      {" — CEP "}{client.address.zipCode}
-                    </span>
+                    <span className="text-sm">{client.endereco ?? "Endereço não informado"}</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <VehicleList clientId={client.id} vehicles={client.vehicles} />
+            <Card className="shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                  <Car className="h-4 w-4 text-muted-foreground" />
+                  Veículos ({client.veiculos?.length ?? 0})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {!client.veiculos || client.veiculos.length === 0 ? (
+                  <p className="rounded-md bg-muted/20 py-8 text-center text-sm text-muted-foreground">
+                    Nenhum veículo cadastrado.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    {client.veiculos.map((v) => (
+                      <div
+                        key={v.id}
+                        className="flex items-center justify-between rounded-lg border bg-card px-4 py-3"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+                            <Car className="h-4 w-4 text-primary" />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium">
+                              {v.marca} {v.modelo}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {v.ano}
+                              {v.cor ? ` · ${v.cor}` : ""}
+                            </span>
+                          </div>
+                        </div>
+                        <Badge variant="outline" className="gap-1 font-mono tracking-widest">
+                          <Hash className="h-3 w-3" />
+                          {v.placa}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
         )}
       </div>
